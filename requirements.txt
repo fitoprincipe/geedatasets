@@ -1,0 +1,2 @@
+earthengine-api>=0.1.128
+geetools>=0.5.0
