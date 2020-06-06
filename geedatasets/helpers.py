@@ -124,3 +124,18 @@ def infoEE(collection):
     information.pop('visualization')
 
     return ee.Dictionary(information)
+
+
+def getCommonBands(*datasets, match='name'):
+    """ Get the common bands of the parsed collections
+
+    :param match: the field to match, can be: name or alias
+    :type match: str
+    """
+    renamed = True if match == 'alias' else False
+    allbands = [set(ds.bandNames(renamed)) for ds in datasets]
+    set0 = allbands[0]
+    for bset in allbands[1:]:
+        set0 = set0.intersection(bset)
+
+    return list(set0)

@@ -4,15 +4,15 @@ from .bands import *
 import geetools
 
 
-class Dataset(object):
+class Dataset:
     """ Parent class for common operations """
     id = None
+    short_name = None
     type = None
 
     def __init__(self, **kwargs):
         pass
 
-    @property
     def eeObject(self):
         """ Create the EE object using the class Type and ID"""
         return self.type(self.id)
@@ -73,9 +73,8 @@ Date: {date}
         params['visualizers'] = visualizers
         return self.INFO.format(**params)
 
-    @property
     def image(self):
-        return self.eeObject
+        return self.eeObject()
 
     @property
     def opticalBands(self):
@@ -177,6 +176,9 @@ Visualizers: {visualizers}
             if band not in bands_gee:
                 raise AssertionError('Band {} not present in GEE'.format(band))
 
+        if verbose:
+            print('Image bands: {} \nDataset bands: {}'.format(bands_gee, bands_here))
+
         for band in self.bands:
             band.test(image, renamed, verbose)
 
@@ -196,10 +198,9 @@ Visualizers: {visualizers}
         params['visualizers'] = visualizers
         return self.INFO.format(**params)
 
-    @property
     def collection(self):
         """ Google Earth Engine Original Image Collection """
-        return self.eeObject
+        return self.eeObject()
 
     @property
     def opticalBands(self):
@@ -363,6 +364,9 @@ class Table(Dataset):
     INFO = """ID: {id}
 """
     type = ee.FeatureCollection
+
+    def collection(self):
+        return self.eeObject()
 
 
 class OpticalSatellite:

@@ -1,4 +1,5 @@
 # coding=utf-8
+from .helpers import getCommonBands
 
 ALL = list()
 
@@ -6,8 +7,37 @@ ALL = list()
 def register(cls):
     """ Register the class in ALL """
     classes = [c.__name__ for c in ALL]
-    if cls.__name__ not in classes:
-        ALL.append(cls)
-    else:
+    if cls.__name__ in classes:
         raise ValueError('Class {} already registered'.format(cls.__name__))
+    shorts = [c.short_name for c in ALL]
+    if cls.short_name in shorts:
+        raise ValueError('Short name {} already registered'.format(cls.short_name))
+    ids = [c.id for c in ALL]
+    if cls.id in ids:
+        raise ValueError('ID {} already registered'.format(cls.id))
+
+    ALL.append(cls)
     return cls
+
+
+from . import landsat, sentinel
+
+
+def fromId(id):
+    """ Create a collection from a parsed ID """
+    instances = [instance for instance in ALL if instance.id==id]
+    if len(instances)>0:
+        dataset = instances[0]
+        return dataset()
+    else:
+        raise ValueError('ID {} not in {}'.format(id, [cls.id for cls in ALL]))
+
+
+def fromShortName(short_name):
+    """ Create a collection from a short name """
+    instances = [instance for instance in ALL if instance.short_name==short_name]
+    if len(instances)>0:
+        dataset = instances[0]
+        return dataset()
+    else:
+        raise ValueError('Name {} not in {}'.format(short_name, [cls.short_name for cls in ALL]))

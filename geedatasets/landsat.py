@@ -309,7 +309,7 @@ class Landsat2(MSS, Landsat):
 @register
 class Landsat2RAW(Tier1, RAW, Landsat2):
     """ Landsat 2 Tier 1 """
-    id = 'LANDSAT/LM02/C01/T2'
+    id = 'LANDSAT/LM02/C01/T1'
     short_name = 'L2RAW'
     bands = (Landsat1RAW.green, Landsat1RAW.red, Landsat1RAW.nir, Landsat1RAW.nir2,
              MSS.bqa)
@@ -413,6 +413,7 @@ class Landsat4RAW(Tier1, RAW, Landsat4TM):
         Visualization.falseColor([nir, red, green]),
         Visualization.NSR([nir, swir, red])
     )
+    common_masks = (TM.bqa.applyMask,)
 
     def __init__(self, **kwargs):
         super(Landsat4RAW, self).__init__(**kwargs)
@@ -444,6 +445,7 @@ class Landsat4TOA(Tier1, TOA, Landsat4TM):
         Visualization.falseColor([nir, red, green]),
         Visualization.NSR([nir, swir, red])
     )
+    common_masks = (TM.bqa.applyMask,)
 
     def __init__(self, **kwargs):
         super(Landsat4TOA, self).__init__(**kwargs)
@@ -476,6 +478,7 @@ class Landsat4SR(Tier1, SR, Landsat4TM):
         Visualization.falseColor([nir, red, green]),
         Visualization.NSR([nir, swir, red])
     )
+    common_masks = (SR.pixel_qa.applyMask, SR.sr_cloud_qa.applyMask)
 
     def __init__(self, **kwargs):
         super(Landsat4SR, self).__init__(**kwargs)
@@ -509,6 +512,7 @@ class Landsat5MSSRAW(Tier1, RAW, Landsat4MSS):
     visualizers = (
         Visualization.falseColor([nir, red, green]),
     )
+    common_masks = (MSS.bqa.applyMask)
 
     def __init__(self, **kwargs):
         super(Landsat5MSSRAW, self).__init__(**kwargs)
@@ -548,6 +552,7 @@ class Landsat5RAW(Tier1, RAW, Landsat5TM):
         Visualization.falseColor([nir, red, green]),
         Visualization.NSR([nir, swir, red])
     )
+    common_masks = (TM.bqa.applyMask,)
 
     def __init__(self, **kwargs):
         super(Landsat5RAW, self).__init__(**kwargs)
@@ -579,6 +584,7 @@ class Landsat5TOA(Tier1, TOA, Landsat5TM):
         Visualization.falseColor([nir, red, green]),
         Visualization.NSR([nir, swir, red])
     )
+    common_masks = (TM.bqa.applyMask,)
 
     def __init__(self, **kwargs):
         super(Landsat5TOA, self).__init__(**kwargs)
@@ -611,6 +617,7 @@ class Landsat5SR(Tier1, SR, Landsat5TM):
         Visualization.falseColor([nir, red, green]),
         Visualization.NSR([nir, swir, red])
     )
+    common_masks = (SR.pixel_qa.applyMask, SR.sr_cloud_qa.applyMask)
 
     def __init__(self, **kwargs):
         super(Landsat5SR, self).__init__(**kwargs)
@@ -650,6 +657,7 @@ class Landsat7RAW(Tier1, RAW, Landsat7ETM):
         Visualization.falseColor([nir, red, green]),
         Visualization.NSR([nir, swir, red])
     )
+    common_masks = (TM.bqa.applyMask,)
 
     def __init__(self, **kwargs):
         super(Landsat7RAW, self).__init__(**kwargs)
@@ -682,6 +690,7 @@ class Landsat7TOA(Tier1, TOA, Landsat7ETM):
         Visualization.falseColor([nir, red, green]),
         Visualization.NSR([nir, swir, red])
     )
+    common_masks = (TM.bqa.applyMask,)
 
     def __init__(self, **kwargs):
         super(Landsat7TOA, self).__init__(**kwargs)
@@ -714,6 +723,7 @@ class Landsat7SR(Tier1, SR, Landsat7ETM):
         Visualization.falseColor([nir, red, green]),
         Visualization.NSR([nir, swir, red])
     )
+    common_masks = (SR.pixel_qa.applyMask, SR.sr_cloud_qa.applyMask)
 
     def __init__(self, **kwargs):
         super(Landsat7SR, self).__init__(**kwargs)
@@ -757,6 +767,7 @@ class Landsat8RAW(Tier1, RAW, Landsat8OLI):
         Visualization.falseColor([nir, red, green]),
         Visualization.NSR([nir, swir, red])
     )
+    common_masks = (OLI.bqa.applyMask,)
 
     def __init__(self, **kwargs):
         super(Landsat8RAW, self).__init__(**kwargs)
@@ -793,6 +804,7 @@ class Landsat8TOA(Tier1, TOA, Landsat8OLI):
         Visualization.falseColor([nir, red, green]),
         Visualization.NSR([nir, swir, red])
     )
+    common_masks = (OLI.bqa.applyMask,)
 
     def __init__(self, **kwargs):
         super(Landsat8TOA, self).__init__(**kwargs)
@@ -827,6 +839,7 @@ class Landsat8SR(Tier1, SR, Landsat8OLI):
         Visualization.falseColor([nir, red, green]),
         Visualization.NSR([nir, swir, red])
     )
+    common_masks = (SR.pixel_qa.applyMask, )
 
     def __init__(self, **kwargs):
         super(Landsat8SR, self).__init__(**kwargs)
