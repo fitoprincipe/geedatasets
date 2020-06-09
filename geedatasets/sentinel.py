@@ -2,7 +2,8 @@
 """ Google Earth Engine Sentinel Collections """
 from .visualization import *
 from .datasets import OpticalSatellite, ImageCollection
-from .bands import *
+from .bands import OpticalBand, BitBand, ClassificationBand, ExpressionBand
+from .masks import Mask
 import geetools
 from . import register
 
@@ -17,7 +18,7 @@ Start Date: {start_date}
 End Date: {end_date}
 Cloud Cover: {cloud_cover}
 Bands: {bands}
-Common Masks: {common_masks}
+Masks: {masks}
 Visualizers: {visualizers}
 """
     number = 2
@@ -79,14 +80,39 @@ class Sentinel2TOA(Sentinel2):
     id = 'COPERNICUS/S2'
     short_name = 'S2TOA'
     process = 'TOA'
-    b10 = OpticalBand('B10', 'cirrus', precision='uint16', resolution=60)
+    cirrus = OpticalBand('B10', 'cirrus', precision='uint16', resolution=60)
     bands = (
         Sentinel2.aerosol, Sentinel2.blue, Sentinel2.green, Sentinel2.red, Sentinel2.red_edge_1,
         Sentinel2.red_edge_2, Sentinel2.red_edge_3, Sentinel2.nir, Sentinel2.red_edge_4, Sentinel2.water_vapor,
-        b10, Sentinel2.swir, Sentinel2.swir2, Sentinel2.qa10, Sentinel2.qa20,
+        cirrus, Sentinel2.swir, Sentinel2.swir2, Sentinel2.qa10, Sentinel2.qa20,
         Sentinel2.qa60
     )
-    common_masks = [Sentinel2.qa60.applyMask]
+
+    @staticmethod
+    def decode_hollstein(image, negatives, positives, renamed):
+        """ Decode Hollstein classification into an image """
+        aerosol = Sentinel2.aerosol.alias if renamed else Sentinel2.aerosol.name
+        blue = Sentinel2.blue.alias if renamed else Sentinel2.blue.name
+        green = Sentinel2.green.alias if renamed else Sentinel2.green.name
+        red_edge_1 = Sentinel2.red_edge_1.alias if renamed else Sentinel2.red_edge_1.name
+        red_edge_2 = Sentinel2.red_edge_2.alias if renamed else Sentinel2.red_edge_2.name
+        red_edge_3 = Sentinel2.red_edge_3.alias if renamed else Sentinel2.red_edge_3.name
+        red_edge_4 = Sentinel2.red_edge_4.alias if renamed else Sentinel2.red_edge_4.name
+        water_vapor = Sentinel2.water_vapor.alias if renamed else Sentinel2.water_vapor.name
+        cirrus = Sentinel2TOA.cirrus.alias if renamed else Sentinel2TOA.cirrus.name
+        swir = Sentinel2.swir.alias if renamed else Sentinel2.swir.name
+        classes = list(negatives or [])+list(positives or [])
+        decoded = geetools.cloud_mask.hollsteinMask(
+            image, classes, aerosol, blue, green, red_edge_1, red_edge_2,
+            red_edge_3, red_edge_4, water_vapor, cirrus, swir
+        )
+        return decoded
+
+    masks = (Mask.fromBand('QA60', Sentinel2.qa60),
+             Mask('Hollstein',
+                  ('cloud', 'snow', 'shadow', 'water', 'cirrus'),
+                  ('cloud', 'snow', 'shadow', 'water', 'cirrus'),
+                  decoder=decode_hollstein))
 
     def __init__(self, **kwargs):
         super(Sentinel2TOA, self).__init__(**kwargs)
@@ -94,7 +120,7 @@ class Sentinel2TOA(Sentinel2):
 
 @register
 class Sentinel2SR(Sentinel2):
-    """ Sentinel 2 Sureface Reflectance """
+    """ Sentinel 2 Surface Reflectance """
     id = 'COPERNICUS/S2_SR'
     short_name = 'S2SR'
     start_date = '2017-03-28'
@@ -150,7 +176,8 @@ class Sentinel2SR(Sentinel2):
         Sentinel2.swir, Sentinel2.swir2, aot, wvp, scl, tci_r, tci_g, tci_b,
         Sentinel2.qa10, Sentinel2.qa20, Sentinel2.qa60
     )
-    common_masks = [scl.applyMask, Sentinel2.qa60.applyMask]
+
+    masks = (Mask.fromBand('SCL', scl), Mask.fromBand('QA60', Sentinel2.qa60))
 
     def __init__(self, **kwargs):
         super(Sentinel2SR, self).__init__(**kwargs)

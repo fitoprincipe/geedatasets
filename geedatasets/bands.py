@@ -4,61 +4,6 @@ import ee
 import geetools
 
 
-class Mask:
-    """ Mixin class for adding special functions related to mask bands. The
-    mixed class MUST have a method called `decodeImage` to get the mask,
-    and the attributes called `negatives` and `positives` """
-    def getNegativeMask(self, image, classes=None, renamed=False):
-        """ Pixels with value = 1 will be masked """
-        if not classes:
-            classes = self.negatives
-
-        decoded = self.decodeImage(image, renamed).select(classes)
-        mask = decoded.reduce(ee.Reducer.sum()).rename('mask').Not()
-        return mask
-
-    def getPositiveMask(self, image, classes=None, renamed=False):
-        """ Pixels with value = 0 will be masked """
-        if not classes:
-            classes = self.positives
-
-        decoded = self.decodeImage(image, renamed).select(classes)
-        mask = decoded.reduce(ee.Reducer.sum()).rename('mask')
-        return mask
-
-    def getMask(self, image, negatives=None, positives=None, renamed=False):
-        """ Get a mask """
-        if positives and negatives:
-            positives = [pos for pos in positives if pos in self.options]
-            negatives = [neg for neg in negatives if neg in self.options]
-            pmask = self.getPositiveMask(image, positives, renamed)
-            nmask = self.getNegativeMask(image, negatives, renamed)
-            mask = pmask.And(nmask)
-        elif positives:
-            positives = [pos for pos in positives if pos in self.options]
-            mask = self.getPositiveMask(image, positives, renamed)
-        elif negatives:
-            negatives = [neg for neg in negatives if neg in self.options]
-            mask = self.getNegativeMask(image, negatives, renamed)
-        else:
-            if self.positives and self.negatives:
-                pmask = self.getPositiveMask(image, self.positives, renamed)
-                nmask = self.getNegativeMask(image, self.negatives, renamed)
-                mask = pmask.And(nmask)
-            elif self.positives:
-                mask = self.getPositiveMask(image, self.positives, renamed)
-            elif self.negatives:
-                mask = self.getNegativeMask(image, self.negatives, renamed)
-            else:
-                mask = ee.Image(1).rename('mask')
-        return mask
-
-    def applyMask(self, image, negatives=None, positives=None, renamed=False):
-        """ Apply the mask for positives and negatives """
-        mask = self.getMask(image, negatives, positives, renamed)
-        return image.updateMask(mask)
-
-
 class Band:
     """ Bands """
     BAND_STR = """Band {name}({alias}):
@@ -156,7 +101,7 @@ wavelength: {wavelength}
         self.scale = scale
 
 
-class BitBand(Mask, Band):
+class BitBand(Band):
     """ Special bit band """
     BAND_STR = """Band {name}({alias}):
 resolution: {resolution}
@@ -213,15 +158,11 @@ negatives: {negatives}
 
     def decodeImage(self, image, renamed=False):
         """ Decode the passed image using the bits information of this band """
-        if renamed:
-            band = self.alias
-        else:
-            band = self.name
-
+        band = self.alias if renamed else self.name
         return self.reader.decodeImage(image, band)
 
 
-class ClassificationBand(Mask, Band):
+class ClassificationBand(Band):
     """ band for classification """
     BAND_STR = """Band {name}({alias}):
 resolution: {resolution}

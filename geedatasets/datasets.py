@@ -164,6 +164,7 @@ Visualizers: {visualizers}
     end_date = None
     region = None
     visualizers = tuple()
+    masks = tuple()
 
     def test(self, image=None, renamed=False, verbose=False):
         if not image:
@@ -183,24 +184,44 @@ Visualizers: {visualizers}
             band.test(image, renamed, verbose)
 
     def info(self):
+        # BANDS
         if self.bands:
             bands = ["{} ({})".format(b.name, b.alias) for b in self.bands]
         else:
             bands = None
 
+        # VISUALIZERS
         if self.visualizers:
             visualizers = [vis.name for vis in self.visualizers]
         else:
             visualizers = None
 
+        # MASKS
+        if self.masks:
+            masks = [mask.name for mask in self.masks]
+        else:
+            masks = None
+
         params = {attr: getattr(self, attr) for attr in dir(self)}
         params['bands'] = bands
         params['visualizers'] = visualizers
+        params['masks'] = masks
         return self.INFO.format(**params)
 
     def collection(self):
         """ Google Earth Engine Original Image Collection """
         return self.eeObject()
+
+    def getMask(self, name):
+        """ Get a mask by its name. The mask object must have a method called
+        `apply(image, negatives, positives, renamed)`
+        """
+        if self.masks:
+            for mask in self.masks:
+                if mask.name == name:
+                    return mask
+        else:
+            return None
 
     @property
     def opticalBands(self):
@@ -290,7 +311,7 @@ Visualizers: {visualizers}
         :rtype: ee.Image
         """
         if mask_band is None:
-            f = self.common_masks[0]
+            f = self.masks[0]
             return f(image, negatives, positives, renamed)
         else:
             band = self.getBandByAlias(mask_band) if renamed else self.getBandByName(mask_band)
