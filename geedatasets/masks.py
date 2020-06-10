@@ -28,12 +28,13 @@ class Mask:
         self._options = options
 
     def __str__(self):
-        return """ Mask
-name: {name}
+        return """'{name}' Mask
 options: {options}
 default negatives: {negatives}
 default positives: {positives}
-"""
+""".format(name=self.name, options=self.options,
+           negatives=self.negatives, positives=self.positives)
+
     @property
     def options(self):
         negatives = self.negatives or []
@@ -94,7 +95,9 @@ default positives: {positives}
         return image.updateMask(mask)
 
     @classmethod
-    def fromBand(cls, name, band):
+    def fromBand(cls, name, band, options=None, negatives=None, positives=None):
         """ Make a Mask from a QA Band """
-        return cls(name, band.options, band.negatives, band.positives,
+        return cls(name, options or band.options,
+                   negatives or band.negatives,
+                   positives or band.positives,
                    band.decodeImage)

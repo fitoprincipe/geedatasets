@@ -167,8 +167,9 @@ class Sentinel2SR(Sentinel2):
             snow=11
         ),
         decoder=scl_decoder,
-        negatives=['saturated', 'dark', 'shadow', 'water', 'clouds_mid_probability',
-                   'clouds_high_probability', 'cirrus', 'snow']
+        negatives=['saturated', 'dark', 'shadow', 'water',
+                   'clouds_mid_probability', 'clouds_high_probability',
+                   'cirrus', 'snow']
     )
     tci_r = OpticalBand(name='TCI_R', alias='true_color_red',
                         precision='uint8', resolution=10)
@@ -196,7 +197,13 @@ class Sentinel2SR(Sentinel2):
         Sentinel2.qa10, Sentinel2.qa20, Sentinel2.qa60
     )
 
-    masks = (Mask.fromBand('SCL', scl), Mask.fromBand('QA60', Sentinel2.qa60))
+    masks = (
+        Mask.fromBand('SCL', scl,
+                      negatives=['saturated', 'dark', 'shadow', 'water',
+                                 'clouds_mid_probability', 'clouds_high_probability',
+                                 'cirrus', 'snow']),
+        Mask.fromBand('QA60', Sentinel2.qa60)
+    )
 
     def __init__(self, **kwargs):
         super(Sentinel2SR, self).__init__(**kwargs)
