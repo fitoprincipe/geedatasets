@@ -74,6 +74,26 @@ Visualizers: {visualizers}
         super(Sentinel2, self).__init__(**kwargs)
 
 
+def decode_hollstein(image, renamed=None):
+    """ Decode Hollstein classification into an image """
+    classes = ('cloud', 'snow', 'shadow', 'water', 'cirrus')
+    aerosol = Sentinel2.aerosol.alias if renamed else Sentinel2.aerosol.name
+    blue = Sentinel2.blue.alias if renamed else Sentinel2.blue.name
+    green = Sentinel2.green.alias if renamed else Sentinel2.green.name
+    red_edge_1 = Sentinel2.red_edge_1.alias if renamed else Sentinel2.red_edge_1.name
+    red_edge_2 = Sentinel2.red_edge_2.alias if renamed else Sentinel2.red_edge_2.name
+    red_edge_3 = Sentinel2.red_edge_3.alias if renamed else Sentinel2.red_edge_3.name
+    red_edge_4 = Sentinel2.red_edge_4.alias if renamed else Sentinel2.red_edge_4.name
+    water_vapor = Sentinel2.water_vapor.alias if renamed else Sentinel2.water_vapor.name
+    cirrus = Sentinel2TOA.cirrus.alias if renamed else Sentinel2TOA.cirrus.name
+    swir = Sentinel2.swir.alias if renamed else Sentinel2.swir.name
+    decoded = geetools.cloud_mask.hollsteinMask(
+        image, classes, aerosol, blue, green, red_edge_1, red_edge_2,
+        red_edge_3, red_edge_4, water_vapor, cirrus, swir
+    )
+    return decoded
+
+
 @register
 class Sentinel2TOA(Sentinel2):
     """ Sentinel 2 TOA """
@@ -88,34 +108,32 @@ class Sentinel2TOA(Sentinel2):
         Sentinel2.qa60
     )
 
-    @staticmethod
-    def decode_hollstein(image, negatives, positives, renamed):
-        """ Decode Hollstein classification into an image """
-        aerosol = Sentinel2.aerosol.alias if renamed else Sentinel2.aerosol.name
-        blue = Sentinel2.blue.alias if renamed else Sentinel2.blue.name
-        green = Sentinel2.green.alias if renamed else Sentinel2.green.name
-        red_edge_1 = Sentinel2.red_edge_1.alias if renamed else Sentinel2.red_edge_1.name
-        red_edge_2 = Sentinel2.red_edge_2.alias if renamed else Sentinel2.red_edge_2.name
-        red_edge_3 = Sentinel2.red_edge_3.alias if renamed else Sentinel2.red_edge_3.name
-        red_edge_4 = Sentinel2.red_edge_4.alias if renamed else Sentinel2.red_edge_4.name
-        water_vapor = Sentinel2.water_vapor.alias if renamed else Sentinel2.water_vapor.name
-        cirrus = Sentinel2TOA.cirrus.alias if renamed else Sentinel2TOA.cirrus.name
-        swir = Sentinel2.swir.alias if renamed else Sentinel2.swir.name
-        classes = list(negatives or [])+list(positives or [])
-        decoded = geetools.cloud_mask.hollsteinMask(
-            image, classes, aerosol, blue, green, red_edge_1, red_edge_2,
-            red_edge_3, red_edge_4, water_vapor, cirrus, swir
-        )
-        return decoded
-
     masks = (Mask.fromBand('QA60', Sentinel2.qa60),
              Mask('Hollstein',
-                  ('cloud', 'snow', 'shadow', 'water', 'cirrus'),
-                  ('cloud', 'snow', 'shadow', 'water', 'cirrus'),
+                  negatives= ('cloud', 'snow', 'shadow', 'water', 'cirrus'),
                   decoder=decode_hollstein))
 
     def __init__(self, **kwargs):
         super(Sentinel2TOA, self).__init__(**kwargs)
+
+
+def scl_decoder(image):
+    saturated = image.eq(1).rename('saturated')
+    dark = image.eq(2).rename('dark')
+    shadow = image.eq(3).rename('shadow')
+    vegetation = image.eq(4).rename('vegetation')
+    bare_soil = image.eq(5).rename('bare_soil')
+    water = image.eq(6).rename('water')
+    unclassified = image.eq(7).rename('unclassified')
+    clouds_mid_probability = image.eq(8).rename('clouds_mid_probability')
+    clouds_high_probability = image.eq(9).rename('clouds_high_probability')
+    cirrus = image.eq(10).rename('cirrus')
+    snow = image.eq(11).rename('snow')
+    cloud = clouds_mid_probability.Or(clouds_high_probability).rename('cloud')
+    return geetools.tools.image.mixBands([
+        saturated, dark, shadow, vegetation, bare_soil, water, unclassified,
+        clouds_mid_probability, clouds_high_probability, cirrus, snow, cloud
+    ])
 
 
 @register
@@ -129,27 +147,28 @@ class Sentinel2SR(Sentinel2):
                       resolution=10)
     wvp = OpticalBand('WVP', 'water_vapor_pressure', precision='uint16',
                       resolution=10)
+
     scl = ClassificationBand(
         name='SCL',
         alias='scene_classification_map',
         precision='uint8',
         resolution=20,
         classes= dict(
-            saturated='value==1',
-            dark='value==2',
-            shadow='value==3',
-            vegetation='value==4',
-            bare_soil='value==5',
-            water='value==6',
-            unclassified='value==7',
-            clouds_mid_probability='value==8',
-            clouds_high_probability='value==9',
-            cirrus='value==10',
-            snow='value==11',
-            cloud='value==8||value==9'
+            saturated=1,
+            dark=2,
+            shadow=3,
+            vegetation=4,
+            bare_soil=5,
+            water=6,
+            unclassified=7,
+            clouds_mid_probability=8,
+            clouds_high_probability=9,
+            cirrus=10,
+            snow=11
         ),
+        decoder=scl_decoder,
         negatives=['saturated', 'dark', 'shadow', 'water', 'clouds_mid_probability',
-                   'clouds_high_probability', 'cirrus', 'snow', 'cloud']
+                   'clouds_high_probability', 'cirrus', 'snow']
     )
     tci_r = OpticalBand(name='TCI_R', alias='true_color_red',
                         precision='uint8', resolution=10)

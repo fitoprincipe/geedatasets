@@ -25,7 +25,23 @@ class Mask:
         self.negatives = negatives
         self.positives = positives
         self.decodeImage = decoder
-        self.options = options
+        self._options = options
+
+    def __str__(self):
+        return """ Mask
+name: {name}
+options: {options}
+default negatives: {negatives}
+default positives: {positives}
+"""
+    @property
+    def options(self):
+        negatives = self.negatives or []
+        positives = self.positives or []
+        if self._options:
+            return self._options
+        else:
+            return list(positives)+list(negatives)
 
     def getNegative(self, image, classes=None, renamed=False):
         """ Pixels with value = 1 will be masked """

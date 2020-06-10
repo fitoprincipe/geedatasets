@@ -7,6 +7,7 @@ from .helpers import TODAY
 from functools import partial
 from . import register
 from .masks import Mask
+import geetools
 
 
 START = {1: '1972-07-23', 2: '1975-01-22', 3: '1978-03-05',
@@ -78,6 +79,15 @@ class TOA:
     process = 'TOA'
 
 
+def atm_op_decoder(image):
+    scale = 0.001
+    image = image.multiply(scale)
+    clear = image.lt(0.1).rename('clear')
+    hazy= image.gt(0.3).rename('hazy')
+    average = image.gte(0.1).And(image.lte(0.3)).rename('average')
+    return geetools.tools.image.mixBands([clear, hazy, average])
+
+
 class SR:
     _extra = dict(scale=0.0001, precision='int16')
     process = 'SR'
@@ -88,13 +98,17 @@ class SR:
         precision='int16',
         resolution=30,
         classes= dict(
-            clear='value<0.1',
-            average='value>=0.1&&value<=0.3',
-            hazy='value>0.3'
+            clear= 'value<0.1',
+            average= '0.1>=value<=0.3',
+            hazy= 'value>0.3'
         ),
+        decoder=atm_op_decoder,
         positives=['clear', 'average'],
         negatives=['hazy']
     )
+    atm_op_vis = Visualization('atmos_opacity', [atm_op],
+                               0, 300, ['green', 'red'])
+
     sr_cloud_qa = BitBand(
         name='sr_cloud_qa',
         alias='cloud_qa',
@@ -477,7 +491,8 @@ class Landsat4SR(Tier1, SR, Landsat4TM):
     visualizers = (
         Visualization.trueColor([red, green, blue]),
         Visualization.falseColor([nir, red, green]),
-        Visualization.NSR([nir, swir, red])
+        Visualization.NSR([nir, swir, red]),
+        SR.atm_op_vis
     )
     masks = (Mask.fromBand('pixel_qa', SR.pixel_qa),
              Mask.fromBand('cloud_qa', SR.sr_cloud_qa))
@@ -617,7 +632,8 @@ class Landsat5SR(Tier1, SR, Landsat5TM):
     visualizers = (
         Visualization.trueColor([red, green, blue]),
         Visualization.falseColor([nir, red, green]),
-        Visualization.NSR([nir, swir, red])
+        Visualization.NSR([nir, swir, red]),
+        SR.atm_op_vis
     )
     masks = (Mask.fromBand('pixel_qa', SR.pixel_qa),
              Mask.fromBand('cloud_qa', SR.sr_cloud_qa))
@@ -724,7 +740,8 @@ class Landsat7SR(Tier1, SR, Landsat7ETM):
     visualizers = (
         Visualization.trueColor([red, green, blue]),
         Visualization.falseColor([nir, red, green]),
-        Visualization.NSR([nir, swir, red])
+        Visualization.NSR([nir, swir, red]),
+        SR.atm_op_vis
     )
     masks = (Mask.fromBand('pixel_qa', SR.pixel_qa),
              Mask.fromBand('cloud_qa', SR.sr_cloud_qa))

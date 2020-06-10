@@ -6,6 +6,28 @@ import geetools
 TODAY = date.today().isoformat()
 
 
+def get_mask(image, flag, value):
+    """ Get a mask using
+
+    - eq, neq, gt, gte, lt, lte
+    """
+    mask = ee.Algorithms.If(
+        flag.compareTo('eq').eq(0), image.eq(value),
+        ee.Algorithms.If(
+            flag.compareTo('neq').eq(0), image.neq(value),
+            ee.Algorithms.If(
+                flag.compareTo('gt').eq(0), image.gt(value),
+                ee.Algorithms.If(
+                    flag.compareTo('gte').eq(0), image.gte(value),
+                    ee.Algorithms.If(
+                        flag.compareTo('lt').eq(0), image.lt(value),
+                        ee.Algorithms.If(
+                            flag.compareTo('lte').eq(0), image.lte(value),
+                            image
+    ))))))
+    return ee.Image(mask)
+
+
 def allequal(iterable):
     """ Check if all elements inside an iterable are equal """
     first = iterable[0]

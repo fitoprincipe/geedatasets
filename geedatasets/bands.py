@@ -173,14 +173,16 @@ positives: {positives}
 negatives: {negatives}
 """
     def __init__(self, name, alias, classes=None, positives=None,
-                 negatives=None, **kwargs):
+                 negatives=None, decoder=None, **kwargs):
         """" By default all classes are considered as positive classes,
         but usually classes like 'clouds' or 'shadow' are negative
 
-        :param classes: classes are the keys (str). Values must be a string
-            using JavaScript logical operators and the special word 'value'.
-            For example (ndvi):
-            {'soil': 'value>=0&&value<=0.4', 'vegetation': 'value>0.4'}
+        :param classes: if decoder argument is `None`, the classes must be for
+        equality. For example:
+        classes = {'cloud': 1, 'shadow': 2, 'clear':3}
+        For other logic like cloud: >1 you must use a decoder function
+        :param decoder: a function that takes as first argument the image
+        and returns a decoded image with one binary band per class
 
         :type classes: dict
         """
@@ -188,6 +190,7 @@ negatives: {negatives}
         self.classes = classes
         self.positives = positives
         self.negatives = negatives
+        self.decoder = decoder
 
         # check consistency
         if self.positives:
@@ -227,15 +230,18 @@ negatives: {negatives}
         """
         band = self.alias if renamed else self.name
         image = image.select(band)
-        classes = ee.Dictionary(self.classes)
 
-        def wrap(key, value):
-            exp = ee.String(value).cat('?1:0')
-            mask = ee.Image(0).expression(exp, {'value': image})
-            return mask.rename([key])
+        if not self.decoder:
+            classes = ee.Dictionary(self.classes)
 
-        newdict = classes.map(wrap)
-        return geetools.tools.image.mixBands(newdict.values())
+            def wrap(key, value):
+                mask = image.eq(value)
+                return mask.rename([key])
+
+            newdict = classes.map(wrap)
+            return geetools.tools.image.mixBands(newdict.values())
+        else:
+            return self.decoder(image)
 
 
 class ExpressionBand(Band):
