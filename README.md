@@ -1,6 +1,6 @@
 ### Google Earth Engine Datasets
-(_this package was a module in [geetools](https://github.com/gee-community/gee_tools). 
-Now it is a package by itself but still depends on geetools_)
+(_this package was a module in [geetools](https://github.com/gee-community/gee_tools) 
+until vesion 0.5. Now it is a package by itself but still depends on geetools_)
 
 In this package you can find hardcoded information about Google Earth Engine 
 available datasets, such as Landsat and Sentinel, and also methods for 
