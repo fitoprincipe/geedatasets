@@ -203,7 +203,7 @@ class Sentinel2SR(Sentinel2):
 
     masks = (
         Mask.fromBand('SCL', scl,
-                      negatives=['saturated', 'dark', 'shadow', 'water',
+                      negatives=['cloud', 'saturated', 'dark', 'shadow', 'water',
                                  'clouds_mid_probability', 'clouds_high_probability',
                                  'cirrus', 'snow']),
         Mask.fromBand('QA60', Sentinel2.qa60)

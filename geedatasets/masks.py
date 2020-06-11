@@ -97,7 +97,7 @@ default positives: {positives}
     @classmethod
     def fromBand(cls, name, band, options=None, negatives=None, positives=None):
         """ Make a Mask from a QA Band """
-        return cls(name, options or band.options,
+        return cls(name, options,
                    negatives or band.negatives,
                    positives or band.positives,
                    band.decodeImage)
