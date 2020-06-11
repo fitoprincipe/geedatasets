@@ -292,4 +292,6 @@ class ExpressionBand(Band):
         final = ee.Image(0).expression(self.expression, params).rename(name)
         if self.precision:
             final = self.changePrecision(final, self.precision, renamed)
-        return final
+        # Pass properties
+        final = final.copyProperties(source=image).set('system:time_start', image.date().millis())
+        return ee.Image(final)

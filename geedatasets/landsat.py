@@ -2,7 +2,7 @@
 """ Google Earth Engine Landsat Collections """
 from .visualization import *
 from .datasets import OpticalSatellite, ImageCollection
-from .bands import OpticalBand, BitBand, ClassificationBand
+from .bands import OpticalBand, BitBand, ClassificationBand, ExpressionBand
 from .helpers import TODAY
 from functools import partial
 from . import register
@@ -167,6 +167,7 @@ class MSS:
     red = partial(OpticalBand, alias='red', resolution=60, units='DN', wavelength=(0.6, 0.7))
     nir = partial(OpticalBand, alias='nir', resolution=60, units='DN', wavelength=(0.7, 0.8))
     nir2 = partial(OpticalBand, alias='nir2', resolution=30, units='DN', wavelength=(0.8, 1.1))
+
     bqa = BitBand(
         name='BQA',
         alias='bqa',
@@ -175,7 +176,7 @@ class MSS:
         bits={'4': {1: 'cloud'}},
         negatives=['cloud']
     )
-    common_masks = (Mask.fromBand('BQA', bqa),)
+    masks = (Mask.fromBand('BQA', bqa),)
 
 
 class TM:
@@ -197,7 +198,8 @@ class TM:
             '9-10': {3: 'snow'}
         }
     )
-    common_masks = (Mask.fromBand('BQA', bqa),)
+
+    masks = (Mask.fromBand('BQA', bqa),)
 
 
 class ETM:
@@ -214,7 +216,7 @@ class ETM:
                                  resolution=30, wavelength=(10.4, 12.5))
     swir2 = TM.swir2
     bqa = TM.bqa
-    common_masks = (Mask.fromBand('BQA', bqa),)
+    masks = (Mask.fromBand('BQA', bqa),)
 
 
 class OLI:
@@ -300,6 +302,9 @@ class Landsat1RAW(Tier1, RAW, Landsat1):
     visualizers = (
         Visualization.falseColor([nir, red, green]),
     )
+    ndvi = ExpressionBand('NDVI', 'ndvi', '(nir-red)/(nir+red)',
+                          [nir, red], precision='float')
+    extra_bands = (ndvi,)
 
     def __init__(self, **kwargs):
         super(Landsat1RAW, self).__init__(**kwargs)
@@ -329,6 +334,7 @@ class Landsat2RAW(Tier1, RAW, Landsat2):
     bands = (Landsat1RAW.green, Landsat1RAW.red, Landsat1RAW.nir, Landsat1RAW.nir2,
              MSS.bqa)
     visualizers = Landsat1RAW.visualizers
+    extra_bands = Landsat1RAW.extra_bands
 
     def __init__(self, **kwargs):
         super(Landsat2RAW, self).__init__(**kwargs)
@@ -356,6 +362,7 @@ class Landsat3RAW(Tier1, RAW, Landsat3):
     bands = (Landsat1RAW.green, Landsat1RAW.red, Landsat1RAW.nir, Landsat1RAW.nir2,
              MSS.bqa)
     visualizers = Landsat1RAW.visualizers
+    extra_bands = Landsat1RAW.extra_bands
 
     def __init__(self, **kwargs):
         super(Landsat3RAW, self).__init__(**kwargs)
@@ -389,6 +396,9 @@ class Landsat4MSSRAW(Tier1, RAW, Landsat4MSS):
     visualizers = (
         Visualization.falseColor([nir, red, green]),
     )
+    ndvi = ExpressionBand('NDVI', 'ndvi', '(nir-red)/(nir+red)',
+                          [nir, red], precision='float')
+    extra_bands = (ndvi,)
 
     def __init__(self, **kwargs):
         super(Landsat4MSSRAW, self).__init__(**kwargs)
@@ -429,6 +439,12 @@ class Landsat4RAW(Tier1, RAW, Landsat4TM):
         Visualization.NSR([nir, swir, red])
     )
     masks = (Mask.fromBand('BQA', TM.bqa),)
+    ndvi = ExpressionBand('NDVI', 'ndvi', '(nir-red)/(nir+red)',
+                          [nir, red], precision='float')
+
+    nbr = ExpressionBand('NBR', 'nbr', '(nir-swir)/(nir+swir)',
+                         [nir, swir], precision='float')
+    extra_bands = (ndvi, nbr)
 
     def __init__(self, **kwargs):
         super(Landsat4RAW, self).__init__(**kwargs)
@@ -461,6 +477,12 @@ class Landsat4TOA(Tier1, TOA, Landsat4TM):
         Visualization.NSR([nir, swir, red])
     )
     masks = (Mask.fromBand('BQA', TM.bqa),)
+    ndvi = ExpressionBand('NDVI', 'ndvi', '(nir-red)/(nir+red)',
+                          [nir, red], precision='float')
+
+    nbr = ExpressionBand('NBR', 'nbr', '(nir-swir)/(nir+swir)',
+                         [nir, swir], precision='float')
+    extra_bands = (ndvi, nbr)
 
     def __init__(self, **kwargs):
         super(Landsat4TOA, self).__init__(**kwargs)
@@ -496,6 +518,12 @@ class Landsat4SR(Tier1, SR, Landsat4TM):
     )
     masks = (Mask.fromBand('pixel_qa', SR.pixel_qa),
              Mask.fromBand('cloud_qa', SR.sr_cloud_qa))
+    ndvi = ExpressionBand('NDVI', 'ndvi', '(nir-red)/(nir+red)',
+                          [nir, red], precision='float')
+
+    nbr = ExpressionBand('NBR', 'nbr', '(nir-swir)/(nir+swir)',
+                         [nir, swir], precision='float')
+    extra_bands = (ndvi, nbr)
 
     def __init__(self, **kwargs):
         super(Landsat4SR, self).__init__(**kwargs)
@@ -530,6 +558,9 @@ class Landsat5MSSRAW(Tier1, RAW, Landsat4MSS):
         Visualization.falseColor([nir, red, green]),
     )
     masks = (Mask.fromBand('BQA', MSS.bqa),)
+    ndvi = ExpressionBand('NDVI', 'ndvi', '(nir-red)/(nir+red)',
+                          [nir, red], precision='float')
+    extra_bands = (ndvi,)
 
     def __init__(self, **kwargs):
         super(Landsat5MSSRAW, self).__init__(**kwargs)
@@ -570,6 +601,11 @@ class Landsat5RAW(Tier1, RAW, Landsat5TM):
         Visualization.NSR([nir, swir, red])
     )
     masks = (Mask.fromBand('BQA', TM.bqa),)
+    ndvi = ExpressionBand('NDVI', 'ndvi', '(nir-red)/(nir+red)',
+                          [nir, red], precision='float')
+    nbr = ExpressionBand('NBR', 'nbr', '(nir-swir)/(nir+swir)',
+                         [nir, swir], precision='float')
+    extra_bands = (ndvi, nbr)
 
     def __init__(self, **kwargs):
         super(Landsat5RAW, self).__init__(**kwargs)
@@ -602,6 +638,11 @@ class Landsat5TOA(Tier1, TOA, Landsat5TM):
         Visualization.NSR([nir, swir, red])
     )
     masks = (Mask.fromBand('BQA', TM.bqa),)
+    ndvi = ExpressionBand('NDVI', 'ndvi', '(nir-red)/(nir+red)',
+                          [nir, red], precision='float')
+    nbr = ExpressionBand('NBR', 'nbr', '(nir-swir)/(nir+swir)',
+                         [nir, swir], precision='float')
+    extra_bands = (ndvi, nbr)
 
     def __init__(self, **kwargs):
         super(Landsat5TOA, self).__init__(**kwargs)
@@ -637,6 +678,11 @@ class Landsat5SR(Tier1, SR, Landsat5TM):
     )
     masks = (Mask.fromBand('pixel_qa', SR.pixel_qa),
              Mask.fromBand('cloud_qa', SR.sr_cloud_qa))
+    ndvi = ExpressionBand('NDVI', 'ndvi', '(nir-red)/(nir+red)',
+                          [nir, red], precision='float')
+    nbr = ExpressionBand('NBR', 'nbr', '(nir-swir)/(nir+swir)',
+                         [nir, swir], precision='float')
+    extra_bands = (ndvi, nbr)
 
     def __init__(self, **kwargs):
         super(Landsat5SR, self).__init__(**kwargs)
@@ -677,6 +723,11 @@ class Landsat7RAW(Tier1, RAW, Landsat7ETM):
         Visualization.NSR([nir, swir, red])
     )
     masks = (Mask.fromBand('BQA', TM.bqa),)
+    ndvi = ExpressionBand('NDVI', 'ndvi', '(nir-red)/(nir+red)',
+                          [nir, red], precision='float')
+    nbr = ExpressionBand('NBR', 'nbr', '(nir-swir)/(nir+swir)',
+                         [nir, swir], precision='float')
+    extra_bands = (ndvi, nbr)
 
     def __init__(self, **kwargs):
         super(Landsat7RAW, self).__init__(**kwargs)
@@ -710,6 +761,11 @@ class Landsat7TOA(Tier1, TOA, Landsat7ETM):
         Visualization.NSR([nir, swir, red])
     )
     masks = (Mask.fromBand('BQA', TM.bqa),)
+    ndvi = ExpressionBand('NDVI', 'ndvi', '(nir-red)/(nir+red)',
+                          [nir, red], precision='float')
+    nbr = ExpressionBand('NBR', 'nbr', '(nir-swir)/(nir+swir)',
+                         [nir, swir], precision='float')
+    extra_bands = (ndvi, nbr)
 
     def __init__(self, **kwargs):
         super(Landsat7TOA, self).__init__(**kwargs)
@@ -745,6 +801,11 @@ class Landsat7SR(Tier1, SR, Landsat7ETM):
     )
     masks = (Mask.fromBand('pixel_qa', SR.pixel_qa),
              Mask.fromBand('cloud_qa', SR.sr_cloud_qa))
+    ndvi = ExpressionBand('NDVI', 'ndvi', '(nir-red)/(nir+red)',
+                          [nir, red], precision='float')
+    nbr = ExpressionBand('NBR', 'nbr', '(nir-swir)/(nir+swir)',
+                         [nir, swir], precision='float')
+    extra_bands = (ndvi, nbr)
 
     def __init__(self, **kwargs):
         super(Landsat7SR, self).__init__(**kwargs)
@@ -789,6 +850,11 @@ class Landsat8RAW(Tier1, RAW, Landsat8OLI):
         Visualization.NSR([nir, swir, red])
     )
     masks = (Mask.fromBand('BQA', OLI.bqa),)
+    ndvi = ExpressionBand('NDVI', 'ndvi', '(nir-red)/(nir+red)',
+                          [nir, red], precision='float')
+    nbr = ExpressionBand('NBR', 'nbr', '(nir-swir)/(nir+swir)',
+                         [nir, swir], precision='float')
+    extra_bands = (ndvi, nbr)
 
     def __init__(self, **kwargs):
         super(Landsat8RAW, self).__init__(**kwargs)
@@ -826,6 +892,11 @@ class Landsat8TOA(Tier1, TOA, Landsat8OLI):
         Visualization.NSR([nir, swir, red])
     )
     masks = (Mask.fromBand('BQA', OLI.bqa),)
+    ndvi = ExpressionBand('NDVI', 'ndvi', '(nir-red)/(nir+red)',
+                          [nir, red], precision='float')
+    nbr = ExpressionBand('NBR', 'nbr', '(nir-swir)/(nir+swir)',
+                         [nir, swir], precision='float')
+    extra_bands = (ndvi, nbr)
 
     def __init__(self, **kwargs):
         super(Landsat8TOA, self).__init__(**kwargs)
@@ -861,6 +932,11 @@ class Landsat8SR(Tier1, SR, Landsat8OLI):
         Visualization.NSR([nir, swir, red])
     )
     masks = (Mask.fromBand('pixel_qa', SR.pixel_qa),)
+    ndvi = ExpressionBand('NDVI', 'ndvi', '(nir-red)/(nir+red)',
+                          [nir, red], precision='float')
+    nbr = ExpressionBand('NBR', 'nbr', '(nir-swir)/(nir+swir)',
+                         [nir, swir], precision='float')
+    extra_bands = (ndvi, nbr)
 
     def __init__(self, **kwargs):
         super(Landsat8SR, self).__init__(**kwargs)

@@ -35,6 +35,7 @@ Date: {date}
     date = None
     region = None
     visualizers = tuple()
+    extra_bands = tuple()
 
     def test(self, image=None, renamed=False, verbose=False):
         if not image:
@@ -165,6 +166,11 @@ Visualizers: {visualizers}
     region = None
     visualizers = tuple()
     masks = tuple()
+    extra_bands = tuple()
+
+    @property
+    def all_bands(self):
+        return list(self.bands)+list(self.extra_bands)
 
     def test(self, image=None, renamed=False, verbose=False):
         if not image:
@@ -180,12 +186,12 @@ Visualizers: {visualizers}
         if verbose:
             print('Image bands: {} \nDataset bands: {}'.format(bands_gee, bands_here))
 
-        for band in self.bands:
+        for band in self.all_bands:
             band.test(image, renamed, verbose)
 
     def info(self):
         # BANDS
-        if self.bands:
+        if self.all_bands:
             bands = ["{} ({})".format(b.name, b.alias) for b in self.bands]
         else:
             bands = None
@@ -216,48 +222,42 @@ Visualizers: {visualizers}
         """ Get a mask by its name. The mask object must have a method called
         `apply(image, negatives, positives, renamed)`
         """
-        if self.masks:
-            for mask in self.masks:
-                if mask.name == name:
-                    return mask
-        else:
+        if not self.masks:
             return None
+        for mask in self.masks:
+            if mask.name == name:
+                return mask
+
+    def _getBandsByType(self, reference):
+        return [band for band in self.all_bands if isinstance(band, reference)]
 
     @property
     def opticalBands(self):
-        return self.getBandsByType(OpticalBand)
+        return self._getBandsByType(OpticalBand)
 
     @property
     def bitBands(self):
-        return self.getBandsByType(BitBand)
+        return self._getBandsByType(BitBand)
 
     @property
     def classificationBands(self):
-        return self.getBandsByType(ClassificationBand)
-
-    def addBand(self, image, band, renamed=False):
-        """ Add an expression band """
-        if not isinstance(band, ExpressionBand):
-            raise ValueError('Only a ExpressionBand can be added')
-        return band.apply(image, renamed)
-
-    def getBandsByType(self, reference):
-        return [band for band in self.bands if isinstance(band, reference)]
+        return self._getBandsByType(ClassificationBand)
 
     def bandNames(self, renamed=False):
         """ List of band names """
-        if not renamed:
-            bands = [band.name for band in self.bands]
-        else:
-            bands = [band.alias for band in self.bands]
+        bands = [band.alias for band in self.bands] if renamed else [band.name for band in self.bands]
+        return bands
 
+    def extraBandNames(self, renamed=False):
+        """ List of extra band names """
+        bands = [band.alias for band in self.extra_bands] if renamed else [band.name for band in self.extra_bands]
         return bands
 
     def precisions(self, renamed=False):
         """ dict of precisions using band ids as keys if not renamed or
         band names if renamed """
         precisions_dict = {}
-        for band in self.bands:
+        for band in self.all_bands:
             name = band.alias if renamed else band.name
             precisions_dict[name] = band.precision
         return precisions_dict
@@ -266,7 +266,7 @@ Visualizers: {visualizers}
         """ dict of ranges (min and max values as dict) using band ids as keys
         if not renamed or band names if renamed """
         scales_dict = {}
-        for band in self.bands:
+        for band in self.all_bands:
             name = band.alias if renamed else band.name
             scales_dict[name] = band.scale
 
@@ -276,53 +276,14 @@ Visualizers: {visualizers}
         """ dict of scales using band ids as keys if not renamed or
         band names if renamed """
         res_dict = {}
-        for band in self.bands:
+        for band in self.all_bands:
             name = band.alias if renamed else band.name
             res_dict[name] = band.resolution
         return res_dict
 
-    def bitImage(self, image, band, renamed=False):
-        """ Get an image from the bit information from the qa band
-
-        :param band: the quality band name
-        :type band: str
-        :param image: the image to decode with the qa band
-        :type image: ee.Image
-        :return: the image with the decode bands added
-        """
-        b = self.getBandByAlias(band) if renamed else self.getBandByName(band)
-        if not isinstance(b, (BitBand, ClassificationBand)):
-            raise ValueError('The band must be a bit or classification')
-
-        return b.decodeImage(image, renamed)
-
-    def applyMask(self, image, mask_band=None, negatives=None, positives=None,
-                  renamed=False):
-        """ Get a mask image using the passed mask band and apply it to the
-        passed image
-
-        :param image: the image to get the mask from
-        :type image: ee.Image
-        :param mask_band: the mask band
-        :type mask_band: str
-        :param classes: the classes for the mask. For example: ['cloud', 'shadow']
-        :type classes: list
-        :return: The image passed with pixels masked
-        :rtype: ee.Image
-        """
-        if mask_band is None:
-            f = self.masks[0]
-            return f(image, negatives, positives, renamed)
-        else:
-            band = self.getBandByAlias(mask_band) if renamed else self.getBandByName(mask_band)
-            if not isinstance(band, (BitBand, ClassificationBand)):
-                raise ValueError('The band must be a bit or classification band')
-
-            return band.applyMask(image, negatives, positives, renamed)
-
     def getBandByAlias(self, alias):
         data = None
-        for b in self.bands:
+        for b in self.all_bands:
             bid = b.alias
             if bid == alias:
                 data = b
@@ -330,7 +291,7 @@ Visualizers: {visualizers}
 
     def getBandByName(self, name):
         data = None
-        for b in self.bands:
+        for b in self.all_bands:
             bid = b.name
             if bid == name:
                 data = b
@@ -347,14 +308,51 @@ Visualizers: {visualizers}
         visualizers = [vis for vis in self.visualizers if vis.name == option]
         return visualizers[0].params(renamed)
 
-    def rename(self, image, reference='all'):
-        """ Rename bands according to the parsed reference. It can be:
-        optical, thermal, bits, all """
-        if reference == 'all':
-            original_names = {band.name: band.alias for band in self.bands}
-        else:
-            original_names = {band.name: band.alias for band in self.bands if band.reference == reference}
+    def addBand(self, image, band, renamed=False):
+        """ Add an expression band to an image """
+        if not isinstance(band, ExpressionBand):
+            raise ValueError('Only a ExpressionBand can be added')
+        return band.apply(image, renamed)
 
+    def bitImage(self, image, band, renamed=False):
+        """ Get an image from the bit information from the qa band
+
+        :param band: the quality band name
+        :type band: str
+        :param image: the image to decode with the qa band
+        :type image: ee.Image
+        :return: the image with the decode bands added
+        """
+        b = self.getBandByAlias(band) if renamed else self.getBandByName(band)
+        if not isinstance(b, (BitBand, ClassificationBand)):
+            raise ValueError('The band must be a bit or classification')
+
+        return b.decodeImage(image, renamed)
+
+    def applyMask(self, image, mask=None, negatives=None, positives=None,
+                  renamed=False):
+        """ Get a mask image using the passed mask band and apply it to the
+        passed image
+
+        :param image: the image to get the mask from
+        :type image: ee.Image
+        :param mask: the mask band
+        :type mask: str
+        :param classes: the classes for the mask. For example: ['cloud', 'shadow']
+        :type classes: list
+        :return: The image passed with pixels masked
+        :rtype: ee.Image
+        """
+        if mask is None:
+            f = self.masks[0]
+            return f(image, negatives, positives, renamed)
+        else:
+            f = self.getMask(mask)
+            return f.apply(image, negatives, positives, renamed)
+
+    def rename(self, image):
+        """ Rename bands """
+        original_names = {band.name: band.alias for band in self.bands}
         return geetools.tools.image.renameDict(image, original_names)
 
     def proxyImage(self, renamed=False):
@@ -381,6 +379,7 @@ Visualizers: {visualizers}
 
         return init
 
+
 class Table(Dataset):
     INFO = """ID: {id}
 """
@@ -392,8 +391,4 @@ class Table(Dataset):
 
 class OpticalSatellite:
     spacecraft = None
-    short_name = None
     cloud_cover = None
-    algorithms = None
-    # common masks elements must be functions with 4 args: image, negatives, positives, renamed
-    common_masks = [lambda i, classes, renamed, negatives: i]

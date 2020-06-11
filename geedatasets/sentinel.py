@@ -60,15 +60,13 @@ Visualizers: {visualizers}
     ndre = ExpressionBand('NDRE', 'ndre', '(nir-red_edge_1)/(nir+red_edge_1)',
                           [nir, red_edge_1], precision='float')
 
-    algorithms = {
-        'hollstein': geetools.cloud_mask.applyHollstein
-    }
-
     visualizers = (
         Visualization.NSR([nir, swir, red]),
         Visualization.trueColor([red, green, blue]),
         Visualization.falseColor([nir, red, green])
     )
+
+    extra_bands = (ndvi, nbr, ndre)
 
     def __init__(self, **kwargs):
         super(Sentinel2, self).__init__(**kwargs)
@@ -178,6 +176,12 @@ class Sentinel2SR(Sentinel2):
     tci_b = OpticalBand(name='TCI_B', alias='true_color_green',
                         precision='uint8', resolution=10)
 
+    cloud_prob = OpticalBand('MSK_CLDPRB', 'cloud_probability', 'percentage',
+                             precision='uint8', resolution=20)
+    snow_prob = OpticalBand('MSK_SNWPRB', 'snow_probability', 'percentage',
+                             precision='uint8', resolution=10)
+
+
     # Add visualizer
     visualizers = (
         Visualization.NSR([Sentinel2.nir, Sentinel2.swir, Sentinel2.red]),
@@ -194,7 +198,7 @@ class Sentinel2SR(Sentinel2):
         Sentinel2.red_edge_1, Sentinel2.red_edge_2, Sentinel2.red_edge_3,
         Sentinel2.nir, Sentinel2.red_edge_4, Sentinel2.water_vapor,
         Sentinel2.swir, Sentinel2.swir2, aot, wvp, scl, tci_r, tci_g, tci_b,
-        Sentinel2.qa10, Sentinel2.qa20, Sentinel2.qa60
+        cloud_prob, snow_prob, Sentinel2.qa10, Sentinel2.qa20, Sentinel2.qa60
     )
 
     masks = (
