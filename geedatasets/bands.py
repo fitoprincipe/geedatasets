@@ -277,7 +277,7 @@ class ExpressionBand(Band):
             min([b.resolution for b in self.bands if isinstance(b.resolution, (int, float))])
         )
 
-    def apply(self, image, renamed=False):
+    def apply(self, image, renamed=False, alias=False):
         """ Apply the band expression to the parsed image """
         params = dict()
         for band in self.bands:
@@ -288,10 +288,10 @@ class ExpressionBand(Band):
         if self.extra:
             for key, value in self.extra.items():
                 params.setdefault(key, value)
-        name = self.alias if renamed else self.name
+        name = self.alias if alias else self.name
         final = ee.Image(0).expression(self.expression, params).rename(name)
         if self.precision:
-            final = self.changePrecision(final, self.precision, renamed)
+            final = self.changePrecision(final, self.precision, alias)
         # Pass properties
         final = final.copyProperties(source=image).set('system:time_start', image.date().millis())
         return ee.Image(final)

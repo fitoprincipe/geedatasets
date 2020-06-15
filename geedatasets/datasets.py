@@ -248,6 +248,10 @@ Visualizers: {visualizers}
         bands = [band.alias for band in self.bands] if renamed else [band.name for band in self.bands]
         return bands
 
+    def bandAlias(self):
+        """ List of band alias """
+        return [band.alias for band in self.bands]
+
     def extraBandNames(self, renamed=False):
         """ List of extra band names """
         bands = [band.alias for band in self.extra_bands] if renamed else [band.name for band in self.extra_bands]
@@ -263,7 +267,7 @@ Visualizers: {visualizers}
         return precisions_dict
 
     def scales(self, renamed=False):
-        """ dict of ranges (min and max values as dict) using band ids as keys
+        """ dict of scales using band ids as keys
         if not renamed or band names if renamed """
         scales_dict = {}
         for band in self.all_bands:
@@ -280,6 +284,11 @@ Visualizers: {visualizers}
             name = band.alias if renamed else band.name
             res_dict[name] = band.resolution
         return res_dict
+
+    def minResolution(self):
+        """ Get minimal resolution between all bands """
+        res = [band.resolution for band in self.bands]
+        return min(res)
 
     def getBandByAlias(self, alias):
         data = None

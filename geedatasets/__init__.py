@@ -41,3 +41,9 @@ def fromShortName(short_name):
         return dataset()
     else:
         raise ValueError('Name {} not in {}'.format(short_name, [cls.short_name for cls in ALL]))
+
+
+def options():
+    """ Print all available options """
+    for ds in ALL:
+        print('{} ({})'.format(ds.id, ds.short_name))
