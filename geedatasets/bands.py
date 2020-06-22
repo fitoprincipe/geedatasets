@@ -15,7 +15,7 @@ units: {units}"""
                            'int16', 'uint32', 'int32', 'int64', 'byte', None)
 
     def __init__(self, name, alias, precision=None, resolution=None,
-                 units=None):
+                 units=None, scale=1):
         """ Band object
 
         :param name: band original name (from GEE)
@@ -30,6 +30,7 @@ units: {units}"""
         self.precision = precision
         self.resolution = resolution
         self.units = units
+        self.scale = scale
 
     def __str__(self):
         return self.BAND_STR.format(**self.__dict__, precision=self.precision)
@@ -94,11 +95,10 @@ units: {units}
 scale: {scale}
 wavelength: {wavelength}
 """
-    def __init__(self, name, alias, units='reflectance', scale=1,
+    def __init__(self, name, alias, units='reflectance',
                  wavelength=None, **kwargs):
         super(OpticalBand, self).__init__(name, alias, units=units, **kwargs)
         self.wavelength = wavelength
-        self.scale = scale
 
 
 class BitBand(Band):
