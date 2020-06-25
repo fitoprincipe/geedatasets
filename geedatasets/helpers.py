@@ -65,7 +65,10 @@ def dataTypeInfo(type):
 
 
 def convertPrecision(image, precision):
-    """ Convert data type precisions """
+    """ Convert data type precisions
+
+    DEPRECATED: use ee.Image.cast instead
+    """
     TYPES = ee.Dictionary({'float': image.toFloat(),
                            'double': image.toDouble(),
                            'int8': image.toInt8(),
@@ -80,6 +83,9 @@ def convertPrecision(image, precision):
 
 
 def convertPrecisions(image, precision_dict):
+    """
+    DEPRECATED: use ee.Image.cast instead
+    """
     precisions = ee.Dictionary(precision_dict)
     bands = ee.List(precisions.keys())
     def iteration(band, ini):

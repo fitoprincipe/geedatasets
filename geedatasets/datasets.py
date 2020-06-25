@@ -2,6 +2,7 @@
 import ee
 from .bands import *
 import geetools
+import datetime
 
 
 class Dataset:
@@ -168,6 +169,28 @@ Visualizers: {visualizers}
     masks = tuple()
     extra_bands = tuple()
 
+    def start(self):
+        """ Get the start date
+
+        :return: start date as a date object
+        :rtype: datetime.date
+        """
+        if self.start_date:
+            return datetime.date.fromisoformat(self.start_date)
+        else:
+            return None
+
+    def end(self):
+        """ Get the end date. If None, it will return the date for today
+
+        :return: end date as a date object
+        :rtype: datetime.date
+        """
+        if self.end_date is None:
+            return datetime.date.today()
+        else:
+            return datetime.date.fromisoformat(self.end_date)
+
     @property
     def all_bands(self):
         return list(self.bands)+list(self.extra_bands)
@@ -306,6 +329,10 @@ Visualizers: {visualizers}
                 data = b
         return data
 
+    def getBand(self, band, by='name'):
+        """ Get a band by name or alias """
+        return self.getBandByAlias(band) if by.lower() == 'alias' else self.getBandByName(band)
+
     def visualization(self, option, renamed=False):
         """ Return visualization parameters for ui.Map.addLayer.
 
@@ -387,6 +414,69 @@ Visualizers: {visualizers}
             init = init.addBands(img)
 
         return init
+
+    def rescale(self, image, target, renamed=False, match='alias', drop=False):
+        """ Re-scale the values of image which must belong to collection so the
+            values match the ones from collection_from
+
+        :param dataset: The Dataset to which belongs the image
+        :type dataset: ImageCollection
+        :param target: the Dataset to get the range from
+        :type target: ImageCollection
+        :param renamed: is the parsed image renamed?
+        :type renamed: bool
+        :param match: whether to match by 'name' or 'alias'
+        :type match: str
+        :param drop: drop the non matching bands?
+        :type drop: bool
+        """
+        # Create comparative collection
+        common_bands = getCommonBands(self, target, match=match)
+        if renamed:
+            bands = [self.getBand(b, match).alias for b in common_bands]
+        else:
+            bands = [self.getBand(b, match).name for b in common_bands]
+
+        scales = dict()
+        scales_match = dict()
+        precisions = dict()
+        precisions_match = dict()
+
+        # fill common bands scales and precisions
+        for band in common_bands:
+            b1 = self.getBand(band, match)
+            bset = b1.alias if renamed else b1.name
+
+            scales[bset] = b1.scale
+            precisions[bset] = b1.precision
+
+            # bset comes from dataset because image comes from dataset
+            b2 = target.getBand(band, match)
+            scales_match[bset] = b2.scale
+            precisions_match[bset] = b2.precision
+
+        # bands in the image
+        bands = ee.List(bands)
+        scales = ee.Dictionary(scales)
+        scales_match = ee.Dictionary(scales_match)
+
+        def iteration(band, ini):
+            ini = ee.Image(ini)
+            band = ee.String(band)
+
+            iband = ini.select(band)
+            scale = ee.Number(scales.get(band))
+            scale_match = ee.Number(scales_match.get(band))
+            newband = iband.multiply(scale).divide(scale_match)
+
+            return ini.addBands(newband, overwrite=True)
+
+        final = ee.Image(bands.iterate(iteration, image))
+        final = final.cast(precisions_match)
+
+        if drop:
+            final = final.select(bands)
+        return final
 
 
 class Table(Dataset):
