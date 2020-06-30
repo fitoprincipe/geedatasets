@@ -6,6 +6,7 @@ from .bands import OpticalBand, BitBand, ClassificationBand, ExpressionBand
 from .masks import Mask
 import geetools
 from . import register
+import ee
 
 
 class Sentinel2(OpticalSatellite, ImageCollection):
@@ -211,3 +212,239 @@ class Sentinel2SR(Sentinel2):
 
     def __init__(self, **kwargs):
         super(Sentinel2SR, self).__init__(**kwargs)
+
+
+@register
+class Sentinel1(ImageCollection):
+    """ Sentinel 1 """
+    id = 'COPERNICUS/S1_GRD'
+    short_name = 'S1'
+    start_date = '2014-10-03'
+    end_date = None
+    polarizations = ('HH', 'HH-HV', 'VV', 'VV-VH')
+    HH = OpticalBand('HH', 'HH', 'db', precision='double', resolution=10)
+    HV = OpticalBand('HV', 'HV', 'db', precision='double', resolution=10)
+    VH = OpticalBand('VH', 'VH', 'db', precision='double', resolution=10)
+    VV = OpticalBand('VV', 'VV', 'db', precision='double', resolution=10)
+    angle = OpticalBand('angle', 'angle', 'degrees', precision='float', resolution=10)
+    bands = (HH, HV, VH, VV, angle)
+    masks = (Mask.empty(), )
+
+    # https://custom-scripts.sentinel-hub.com/custom-scripts/sentinel-1/radar_vegetation_index_code_dual_polarimetric/supplementary_material.pdf
+    RVI = ExpressionBand(
+        'RVI', 'rvi',
+        """
+        ( 4 * (10**(VH/10)) ) / 
+        ( (10**(VV/10)) + (10**(VH/10)) )
+        """,
+        [VV, VH],
+        precision='float',
+        scale=10
+    )
+
+    extra_bands = (RVI,)
+
+    def __init__(self, **kwargs):
+        super(Sentinel1, self).__init__(**kwargs)
+
+    def filter_polarisation(self, polarisation, collection=None):
+        """ To get an homogeneous collection you have to filter using one of:
+
+        - HH, HH-HV, VV or VV-VH
+
+        HH and HH-HV collections cover the north and south pole. The rest of
+        the world is covered by VV and VV-VH
+
+        See: https://sentinel.esa.int/web/sentinel/missions/sentinel-1/observation-scenario
+
+        :param polarisation: can be HH HH-HV VV or VV-VH
+        :type polarisation: str
+        :param collection: an image collection to filter. If None it will use
+        the complete S1 collection
+        :type collection: ee.ImageCollection
+        """
+        col = collection or self.collection()
+        property = 'transmitterReceiverPolarisation'
+        def filt(option):
+            return ee.Filter.listContains(property, option)
+
+        hh = filt('HH')
+        hv = filt('HV')
+        vv = filt('VV')
+        vh = filt('VH')
+
+        filters = {
+            'HH': ee.Filter.And(hh, hv.Not(), vv.Not(), vh.Not()),
+            'HH-HV': ee.Filter.And(hh, hv, vv.Not(), vh.Not()),
+            'VV': ee.Filter.And(hh.Not(), hv.Not(), vv, vh.Not()),
+            'VV-VH': ee.Filter.And(hh.Not(), hv.Not(), vv, vh)
+        }
+        if polarisation not in filters:
+            raise ValueError('Polarisation {} not available, options are: {}'.format(polarisation, filters.keys()))
+
+        return col.filter(filters[polarisation])
+
+    def filter_orbit(self, ascending=True, collection=None):
+        """ Filter by orbit ascending or descending """
+        col = collection or self.collection()
+        property = 'orbitProperties_pass'
+        if ascending:
+            return col.filterMetadata(property, 'equals', 'ASCENDING')
+        else:
+            return col.filterMetadata(property, 'equals', 'DESCENDING')
+
+    def filter_instrument(self, instrument, collection=None):
+        """ Options are 'IW' (Interferometric Wide Swath),
+        'EW' (Extra Wide Swath) or 'SM' (Strip Map).
+        See https://sentinel.esa.int/web/sentinel/user-guides/sentinel-1-sar/acquisition-modes
+        for details."""
+        options = ('IW', 'EW', 'SM')
+        if instrument not in options:
+            raise ValueError('instrument must be one of {}'.format(options))
+        property = 'instrumentMode'
+        col = collection or self.collection()
+        return col.filter(ee.Filter.eq(property, instrument))
+
+    def convert_to_intensity(self, image):
+        """ Convert values as they come in GEE (db) to intensity (DN) """
+        angle = image.select('angle')
+        intensity = ee.Image().expression('10**(v/10)', dict(v=image))
+        return intensity.addBands(angle, overwrite=True)
+
+    @staticmethod
+    def _lee_filter(image):
+        """ Lee speckle filter from
+
+        https://groups.google.com/g/google-earth-engine-developers/c/puhSXaJ7NmI/m/TNOd0knyBQAJ
+        """
+        bandNames = image.bandNames()
+
+        # image must be in natural units, i.e. not in dB!
+        # Set up 3x3 kernels
+        weights3 = ee.List.repeat(ee.List.repeat(1,3), 3)
+        kernel3 = ee.Kernel.fixed(3,3, weights3, 1, 1, False)
+
+        mean3 = image.reduceNeighborhood(ee.Reducer.mean(), kernel3)
+        variance3 = image.reduceNeighborhood(ee.Reducer.variance(), kernel3)
+
+        # Use a sample of the 3x3 windows inside a 7x7 windows to determine
+        # gradients and directions
+        sample_weights = ee.List(
+            [[0,0,0,0,0,0,0],
+             [0,1,0,1,0,1,0],
+             [0,0,0,0,0,0,0],
+             [0,1,0,1,0,1,0],
+             [0,0,0,0,0,0,0],
+             [0,1,0,1,0,1,0],
+             [0,0,0,0,0,0,0]])
+
+        sample_kernel = ee.Kernel.fixed(7, 7, sample_weights, 3, 3, False)
+
+        # Calculate mean and variance for the sampled windows and store as 9 bands
+        sample_mean = mean3.neighborhoodToBands(sample_kernel)
+        sample_var= variance3.neighborhoodToBands(sample_kernel)
+
+        # Determine the 4 gradients for the sampled windows
+        gradients = sample_mean.select(1).subtract(sample_mean.select(7)).abs()
+        gradients = gradients.addBands(
+            sample_mean.select(6).subtract(sample_mean.select(2)).abs())
+        gradients = gradients.addBands(
+            sample_mean.select(3).subtract(sample_mean.select(5)).abs())
+        gradients = gradients.addBands(
+            sample_mean.select(0).subtract(sample_mean.select(8)).abs())
+
+        # And find the maximum gradient amongst gradient bands
+        max_gradient = gradients.reduce(ee.Reducer.max())
+
+        # Create a mask for band pixels that are the maximum gradient
+        gradmask = gradients.eq(max_gradient)
+
+        # duplicate gradmask bands: each gradient represents 2 directions
+        gradmask = gradmask.addBands(gradmask)
+
+        # Determine the 8 directions
+        directions = sample_mean.select(1).subtract(sample_mean.select(4)).gt(sample_mean.select(4).subtract(sample_mean.select(7))).multiply(1)
+        directions = directions.addBands(sample_mean.select(6).subtract(sample_mean.select(4)).gt(sample_mean.select(4).subtract(sample_mean.select(2))).multiply(2))
+        directions = directions.addBands(sample_mean.select(3).subtract(sample_mean.select(4)).gt(sample_mean.select(4).subtract(sample_mean.select(5))).multiply(3))
+        directions = directions.addBands(sample_mean.select(0).subtract(sample_mean.select(4)).gt(sample_mean.select(4).subtract(sample_mean.select(8))).multiply(4))
+        # The next 4 are the not() of the previous 4
+        directions = directions.addBands(directions.select(0).Not().multiply(5))
+        directions = directions.addBands(directions.select(1).Not().multiply(6))
+        directions = directions.addBands(directions.select(2).Not().multiply(7))
+        directions = directions.addBands(directions.select(3).Not().multiply(8))
+
+        # Mask all values that are not 1-8
+        directions = directions.updateMask(gradmask)
+
+        # "collapse" the stack into a singe band image (due to masking, each pixel has just one value (1-8) in it's directional band, and is otherwise masked)
+        directions = directions.reduce(ee.Reducer.sum())
+
+        sample_stats = sample_var.divide(sample_mean.multiply(sample_mean))
+
+        # Calculate localNoiseVariance
+        sigmaV = sample_stats.toArray().arraySort().arraySlice(0, 0, 5).arrayReduce(ee.Reducer.mean(), [0])
+
+        # Set up the 7*7 kernels for directional statistics
+        rect_weights = ee.List.repeat(ee.List.repeat(0, 7), 3).cat(ee.List.repeat(ee.List.repeat(1, 7), 4))
+
+        diag_weights = ee.List(
+            [[1,0,0,0,0,0,0],
+             [1,1,0,0,0,0,0],
+             [1,1,1,0,0,0,0],
+             [1,1,1,1,0,0,0],
+             [1,1,1,1,1,0,0],
+             [1,1,1,1,1,1,0],
+             [1,1,1,1,1,1,1]])
+
+        rect_kernel = ee.Kernel.fixed(7, 7, rect_weights, 3, 3, False)
+        diag_kernel = ee.Kernel.fixed(7, 7, diag_weights, 3, 3, False)
+
+        # Create stacks for mean and variance using the original kernels. Mask with relevant direction.
+        dir_mean = image.reduceNeighborhood(ee.Reducer.mean(), rect_kernel).updateMask(directions.eq(1))
+        dir_var = image.reduceNeighborhood(ee.Reducer.variance(), rect_kernel).updateMask(directions.eq(1))
+
+        dir_mean = dir_mean.addBands(image.reduceNeighborhood(ee.Reducer.mean(), diag_kernel).updateMask(directions.eq(2)))
+        dir_var = dir_var.addBands(image.reduceNeighborhood(ee.Reducer.variance(), diag_kernel).updateMask(directions.eq(2)))
+
+        # and add the bands for rotated kernels
+        for i in range(1, 4):
+            dir_mean = dir_mean.addBands(image.reduceNeighborhood(ee.Reducer.mean(), rect_kernel.rotate(i)).updateMask(directions.eq(2 * i + 1)));
+            dir_var= dir_var.addBands(image.reduceNeighborhood(ee.Reducer.variance(), rect_kernel.rotate(i)).updateMask(directions.eq(2 * i + 1)));
+            dir_mean = dir_mean.addBands(image.reduceNeighborhood(ee.Reducer.mean(), diag_kernel.rotate(i)).updateMask(directions.eq(2 * i + 2)));
+            dir_var= dir_var.addBands(image.reduceNeighborhood(ee.Reducer.variance(), diag_kernel.rotate(i)).updateMask(directions.eq(2 * i + 2)));
+
+
+        # "collapse" the stack into a single band image (due to masking, each pixel has just one value in it's directional band, and is otherwise masked)
+        dir_mean = dir_mean.reduce(ee.Reducer.sum())
+        dir_var= dir_var.reduce(ee.Reducer.sum())
+
+        # A finally generate the filtered value
+        varX = dir_var.subtract(dir_mean.multiply(dir_mean).multiply(sigmaV)).divide(sigmaV.add(1.0))
+
+        b = varX.divide(dir_var)
+
+        result = dir_mean.add(b.multiply(image.subtract(dir_mean)))
+
+        result = result.arrayFlatten([bandNames])  #convert the resultant Array back to a multi-band image
+
+        return(result)
+
+    def lee_filter(self, image, renamed=False):
+        """ Lee speckle filter from
+
+        https://groups.google.com/g/google-earth-engine-developers/c/puhSXaJ7NmI/m/TNOd0knyBQAJ
+        """
+        angleB = self.getBandByName('angle')
+        angle = angleB.alias if renamed else angleB.name
+        bands = image.bandNames()
+        bands = ee.List(
+            ee.Algorithms.If(bands.contains(angle), bands.remove(angle), bands)
+        )
+        def wrap(band, im):
+            im = ee.Image(im)
+            band = ee.String(band)
+            f = self._lee_filter(im.select(band))
+            return im.addBands(f, overwrite=True)
+
+        filtered = ee.Image(bands.iterate(wrap, image))
+        return filtered

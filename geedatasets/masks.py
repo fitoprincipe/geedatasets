@@ -101,3 +101,8 @@ default positives: {positives}
                    negatives or band.negatives,
                    positives or band.positives,
                    band.decodeImage)
+
+    @classmethod
+    def empty(cls):
+        """ Empty MASK """
+        return cls('Empty', [], [], [], decoder=lambda i: i)
