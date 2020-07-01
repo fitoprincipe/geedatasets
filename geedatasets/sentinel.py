@@ -239,7 +239,7 @@ class Sentinel1(ImageCollection):
         """,
         [VV, VH],
         precision='float',
-        scale=10
+        resolution=10
     )
 
     extra_bands = (RVI,)

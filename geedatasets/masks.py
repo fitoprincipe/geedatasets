@@ -64,17 +64,17 @@ default positives: {positives}
 
     def get(self, image, negatives=None, positives=None, renamed=False):
         """ Get a mask """
+        negatives = negatives or []
+        positives = positives or []
+        positives = [pos for pos in positives if pos in self.options]
+        negatives = [neg for neg in negatives if neg in self.options]
         if positives and negatives:
-            positives = [pos for pos in positives if pos in self.options]
-            negatives = [neg for neg in negatives if neg in self.options]
             pmask = self.getPositive(image, positives, renamed)
             nmask = self.getNegative(image, negatives, renamed)
             mask = pmask.And(nmask)
         elif positives:
-            positives = [pos for pos in positives if pos in self.options]
             mask = self.getPositive(image, positives, renamed)
         elif negatives:
-            negatives = [neg for neg in negatives if neg in self.options]
             mask = self.getNegative(image, negatives, renamed)
         else:
             if self.positives and self.negatives:
@@ -105,4 +105,4 @@ default positives: {positives}
     @classmethod
     def empty(cls):
         """ Empty MASK """
-        return cls('Empty', [], [], [], decoder=lambda i: i)
+        return cls('Empty', [], [], [], decoder=lambda i, _: i)
