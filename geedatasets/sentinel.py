@@ -309,7 +309,21 @@ class Sentinel1(ImageCollection):
         """ Convert values as they come in GEE (db) to intensity (DN) """
         angle = image.select('angle')
         intensity = ee.Image().expression('10**(v/10)', dict(v=image))
-        return intensity.addBands(angle, overwrite=True)
+        i = intensity.addBands(angle, overwrite=True)
+        return ee.Image(
+            i.copyProperties(source=image).set('system:time_start',
+                                               image.date().millis())
+        )
+
+    def convert_to_db(self, image):
+        """ Convert values from intensity to db """
+        angle = image.select('angle')
+        db = ee.Image().expression('log(v)*10', dict(v=image))
+        i = db.addBands(angle, overwrite=True)
+        return ee.Image(
+            i.copyProperties(source=image).set('system:time_start',
+                                               image.date().millis())
+        )
 
     @staticmethod
     def _lee_filter(image):
@@ -321,8 +335,8 @@ class Sentinel1(ImageCollection):
 
         # image must be in natural units, i.e. not in dB!
         # Set up 3x3 kernels
-        weights3 = ee.List.repeat(ee.List.repeat(1,3), 3)
-        kernel3 = ee.Kernel.fixed(3,3, weights3, 1, 1, False)
+        weights3 = ee.List.repeat(ee.List.repeat(1, 3), 3)
+        kernel3 = ee.Kernel.fixed(3, 3, weights3, 1, 1, False)
 
         mean3 = image.reduceNeighborhood(ee.Reducer.mean(), kernel3)
         variance3 = image.reduceNeighborhood(ee.Reducer.variance(), kernel3)
@@ -408,10 +422,10 @@ class Sentinel1(ImageCollection):
 
         # and add the bands for rotated kernels
         for i in range(1, 4):
-            dir_mean = dir_mean.addBands(image.reduceNeighborhood(ee.Reducer.mean(), rect_kernel.rotate(i)).updateMask(directions.eq(2 * i + 1)));
-            dir_var= dir_var.addBands(image.reduceNeighborhood(ee.Reducer.variance(), rect_kernel.rotate(i)).updateMask(directions.eq(2 * i + 1)));
-            dir_mean = dir_mean.addBands(image.reduceNeighborhood(ee.Reducer.mean(), diag_kernel.rotate(i)).updateMask(directions.eq(2 * i + 2)));
-            dir_var= dir_var.addBands(image.reduceNeighborhood(ee.Reducer.variance(), diag_kernel.rotate(i)).updateMask(directions.eq(2 * i + 2)));
+            dir_mean = dir_mean.addBands(image.reduceNeighborhood(ee.Reducer.mean(), rect_kernel.rotate(i)).updateMask(directions.eq(2 * i + 1)))
+            dir_var= dir_var.addBands(image.reduceNeighborhood(ee.Reducer.variance(), rect_kernel.rotate(i)).updateMask(directions.eq(2 * i + 1)))
+            dir_mean = dir_mean.addBands(image.reduceNeighborhood(ee.Reducer.mean(), diag_kernel.rotate(i)).updateMask(directions.eq(2 * i + 2)))
+            dir_var= dir_var.addBands(image.reduceNeighborhood(ee.Reducer.variance(), diag_kernel.rotate(i)).updateMask(directions.eq(2 * i + 2)))
 
 
         # "collapse" the stack into a single band image (due to masking, each pixel has just one value in it's directional band, and is otherwise masked)
@@ -434,6 +448,9 @@ class Sentinel1(ImageCollection):
 
         https://groups.google.com/g/google-earth-engine-developers/c/puhSXaJ7NmI/m/TNOd0knyBQAJ
         """
+        # convert to natural units
+        image = self.convert_to_intensity(image)
+
         angleB = self.getBandByName('angle')
         angle = angleB.alias if renamed else angleB.name
         bands = image.bandNames()
@@ -447,4 +464,5 @@ class Sentinel1(ImageCollection):
             return im.addBands(f, overwrite=True)
 
         filtered = ee.Image(bands.iterate(wrap, image))
-        return filtered
+        db = self.convert_to_db(filtered)
+        return db
