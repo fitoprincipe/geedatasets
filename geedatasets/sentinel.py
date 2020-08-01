@@ -4,6 +4,7 @@ from .visualization import *
 from .datasets import OpticalSatellite, ImageCollection
 from .bands import OpticalBand, BitBand, ClassificationBand, ExpressionBand
 from .masks import Mask
+from . import helpers
 import geetools
 from . import register
 import ee
@@ -69,6 +70,29 @@ Visualizers: {visualizers}
 
     extra_bands = (ndvi, nbr, ndre)
 
+    def add_cloud_probability(self, collection=None, name='cloud_probability'):
+        """ add band from ee.ImageCollection("COPERNICUS/S2_CLOUD_PROBABILITY")
+        to the specified collection. If collection is None the complete S2
+        collection will be used. You can use any collection as long as it keeps
+        the image ids """
+        if collection is None:
+            collection = self.collection()
+
+        clouds = ee.ImageCollection("COPERNICUS/S2_CLOUD_PROBABILITY")
+        propertyField = 'system:index'
+        Filter = ee.Filter.equals(leftField=propertyField,
+                                  rightField=propertyField)
+        join = ee.Join.saveFirst(matchKey='match', outer=False)
+        joined = ee.ImageCollection(join.apply(collection, clouds, Filter))
+
+        def overJoined(image):
+            # properties = image.propertyNames()
+            # retain = properties.remove('match')
+            match = ee.Image(image.get('match')).rename(name)
+            return image.addBands(match)
+
+        return joined.map(overJoined)
+
     def __init__(self, **kwargs):
         super(Sentinel2, self).__init__(**kwargs)
 
@@ -111,6 +135,31 @@ class Sentinel2TOA(Sentinel2):
              Mask('Hollstein',
                   negatives= ('cloud', 'snow', 'shadow', 'water', 'cirrus'),
                   decoder=decode_hollstein))
+
+    def add_scl(self, collection=None, name='SCL', renamed=False):
+        """ Add the SCL band from S2SR collection to every image of the
+        given collection. If collection is None it will use the complete S2TOA
+        collection """
+        s2sr = Sentinel2SR()
+        S2SR_start = s2sr.start_date
+        if collection is None:
+            collection = self.collection().filterDate(S2SR_start, helpers.today())
+        srcol = s2sr.collection()
+        propertyField = 'system:index'
+        Filter = ee.Filter.equals(leftField=propertyField,
+                                  rightField=propertyField)
+        join = ee.Join.saveFirst(matchKey='match', outer=False)
+        joined = ee.ImageCollection(join.apply(collection, srcol, Filter))
+
+        def overJoined(image):
+            # properties = image.propertyNames()
+            # retain = properties.remove('match')
+            match = ee.Image(image.get('match'))\
+                      .select(s2sr.scl.alias if renamed else s2sr.scl.name)\
+                      .rename(name)
+            return image.addBands(match)
+
+        return joined.map(overJoined)
 
     def __init__(self, **kwargs):
         super(Sentinel2TOA, self).__init__(**kwargs)
