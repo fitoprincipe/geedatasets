@@ -273,16 +273,29 @@ class Sentinel1(ImageCollection):
         vv = filt('VV')
         vh = filt('VH')
 
-        filters = {
-            'HH': ee.Filter.And(hh, hv.Not(), vv.Not(), vh.Not()),
-            'HH-HV': ee.Filter.And(hh, hv, vv.Not(), vh.Not()),
-            'VV': ee.Filter.And(hh.Not(), hv.Not(), vv, vh.Not()),
-            'VV-VH': ee.Filter.And(hh.Not(), hv.Not(), vv, vh)
-        }
-        if polarisation not in filters:
-            raise ValueError('Polarisation {} not available, options are: {}'.format(polarisation, filters.keys()))
+        if isinstance(polarisation, str):
+            filters = {
+                'HH': ee.Filter.And(hh, hv.Not(), vv.Not(), vh.Not()),
+                'HH-HV': ee.Filter.And(hh, hv, vv.Not(), vh.Not()),
+                'VV': ee.Filter.And(hh.Not(), hv.Not(), vv, vh.Not()),
+                'VV-VH': ee.Filter.And(hh.Not(), hv.Not(), vv, vh)
+            }
+            if polarisation not in filters:
+                raise ValueError('Polarisation {} not available, options are: {}'.format(polarisation, filters.keys()))
 
-        return col.filter(filters[polarisation])
+            filter = filters[polarisation]
+        else:
+            if list(polarisation) == ['HH']:
+                filter = ee.Filter.And(hh, hv.Not(), vv.Not(), vh.Not())
+            elif list(polarisation) == ['HH', 'HV'] or list(polarisation) == ['HV', 'HH']:
+                filter = ee.Filter.And(hh, hv, vv.Not(), vh.Not())
+            elif list(polarisation) == ['VV']:
+                filter = ee.Filter.And(hh.Not(), hv.Not(), vv, vh.Not())
+            else:
+                filter = ee.Filter.And(hh.Not(), hv.Not(), vv, vh)
+
+        return col.filter(filter)
+
 
     def filter_orbit(self, ascending=True, collection=None):
         """ Filter by orbit ascending or descending """
@@ -307,23 +320,15 @@ class Sentinel1(ImageCollection):
 
     def convert_to_intensity(self, image):
         """ Convert values as they come in GEE (db) to intensity (DN) """
-        angle = image.select('angle')
-        intensity = ee.Image().expression('10**(v/10)', dict(v=image))
-        i = intensity.addBands(angle, overwrite=True)
-        return ee.Image(
-            i.copyProperties(source=image).set('system:time_start',
-                                               image.date().millis())
-        )
+        rest = image.bandNames().remove('angle')
+        intensity = ee.Image().expression('10**(v/10)', dict(v=image.select(rest)))
+        return image.addBands(intensity, overwrite=True)
 
     def convert_to_db(self, image):
         """ Convert values from intensity to db """
-        angle = image.select('angle')
-        db = ee.Image().expression('log(v)*10', dict(v=image))
-        i = db.addBands(angle, overwrite=True)
-        return ee.Image(
-            i.copyProperties(source=image).set('system:time_start',
-                                               image.date().millis())
-        )
+        rest = image.bandNames().remove('angle')
+        intensity = ee.Image().expression('log10(v)*10', dict(v=image.select(rest)))
+        return image.addBands(intensity, overwrite=True)
 
     @staticmethod
     def _lee_filter(image):
