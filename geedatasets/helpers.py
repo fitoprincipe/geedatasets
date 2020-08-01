@@ -6,6 +6,10 @@ import geetools
 TODAY = date.today().isoformat()
 
 
+def today():
+    return date.today().isoformat()
+
+
 def get_mask(image, flag, value):
     """ Get a mask using
 
