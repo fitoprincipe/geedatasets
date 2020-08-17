@@ -133,7 +133,7 @@ class Sentinel2TOA(Sentinel2):
 
     masks = (Mask.fromBand('QA60', Sentinel2.qa60),
              Mask('Hollstein',
-                  negatives= ('cloud', 'snow', 'shadow', 'water', 'cirrus'),
+                  negatives=('cloud', 'snow', 'shadow', 'water', 'cirrus'),
                   decoder=decode_hollstein))
 
     def add_scl(self, collection=None, name='SCL', renamed=False):
