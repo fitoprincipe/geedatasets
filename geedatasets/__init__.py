@@ -1,5 +1,6 @@
 # coding=utf-8
 from .helpers import getCommonBands
+from ._version import __version__
 
 ALL = list()
 
