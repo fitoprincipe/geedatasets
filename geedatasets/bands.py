@@ -295,3 +295,13 @@ class ExpressionBand(Band):
         # Pass properties
         final = final.copyProperties(source=image).set('system:time_start', image.date().millis())
         return ee.Image(final)
+
+
+class RangeBand(Band):
+    def __init__(self, name, alias, min=None, max=None, precision=None,
+                 resolution=None, units=None, scale=1):
+        """ A continue range band. For example 'cloud probability'. """
+        super(RangeBand, self).__init__(name, alias, precision, resolution,
+                                        units, scale)
+        self.min = min
+        self.max = max
