@@ -2,7 +2,8 @@
 """ Google Earth Engine Sentinel Collections """
 from .visualization import *
 from .datasets import OpticalSatellite, ImageCollection
-from .bands import OpticalBand, BitBand, ClassificationBand, ExpressionBand
+from .bands import OpticalBand, BitBand, ClassificationBand, ExpressionBand, \
+    RangeBand
 from .masks import Mask
 from . import helpers
 import geetools
@@ -520,3 +521,42 @@ class Sentinel1(ImageCollection):
         filtered = ee.Image(bands.iterate(wrap, image))
         db = self.convert_to_db(filtered)
         return db
+
+
+@register
+class S2Cloudless(ImageCollection):
+    id = 'COPERNICUS/S2_CLOUD_PROBABILITY'
+    short_name = 'S2CLOUD'
+    start_date = '2015-06-23'
+    end_date = None
+    probability = RangeBand('probability', 'probability', 0, 100,
+                            'uint8', 10, 'percentage', 1)
+    bands = (probability,)
+    band = 'cloud_probability'
+
+    def match(self, collection):
+        """ Combine this collection with the given S2 collection """
+        # Join S2 SR with cloud probability dataset to add cloud mask.
+        matched = ee.Join.saveFirst(self.band).apply(
+            primary=collection,
+            secondary=self.collection(),
+            condition=ee.Filter.equals(leftField='system:index',
+                                       rightField='system:index')
+        )
+
+        def wrap(image):
+            match = ee.Image(image.get(self.band))
+            match = match.rename(self.band)
+            return ee.Image(image).addBands(match)
+
+        return ee.ImageCollection(matched.map(wrap))
+
+    def apply(self, collection, threshold):
+        """ Apply the mask to the images in a collection using the
+        given threshold """
+        matched = self.match(collection)
+        def wrap(image):
+            image = ee.Image(image)
+            mask = image.select(self.band).lte(threshold)
+            return ee.Image(image.updateMask(mask))
+        return ee.ImageCollection(matched.map(wrap))
