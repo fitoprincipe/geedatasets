@@ -237,9 +237,23 @@ Visualizers: {visualizers}
         params['masks'] = masks
         return self.INFO.format(**params)
 
-    def collection(self):
-        """ Google Earth Engine Original Image Collection """
-        return self.eeObject()
+    def collection(self, bounds=None, date=None):
+        """ Google Earth Engine Original Image Collection.
+        You can filter by bounds and date using parameters
+        """
+        col = self.eeObject()
+        if isinstance(bounds, (ee.Feature, ee.FeatureCollection, ee.Image)):
+            bounds = bounds.geometry()
+        if bounds:
+            unbounded = bounds.isUnbounded()
+            col = ee.ImageCollection(
+                ee.Algorithms.If(unbounded, col, col.filterBounds(bounds)))
+
+        if isinstance(date, (list, tuple)):
+            col = col.filterDate(ee.Date(date[0]), ee.Date(date[1]))
+        elif isinstance(date, (str, ee.Date)):
+            col = col.filterDate(ee.Date(date))
+        return col
 
     def getMask(self, name):
         """ Get a mask by its name. The mask object must have a method called
