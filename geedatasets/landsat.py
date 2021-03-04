@@ -70,7 +70,7 @@ class Tier2:
 
 
 class RAW:
-    _extra = dict(precision='uint8')
+    _extra = dict(precision='uint8', scale=1/255)
     process = 'RAW'
 
 
