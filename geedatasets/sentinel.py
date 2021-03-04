@@ -532,12 +532,12 @@ class S2Cloudless(ImageCollection):
     probability = RangeBand('probability', 'probability', 0, 100,
                             'uint8', 10, 'percentage', 1)
     bands = (probability,)
-    band = 'cloud_probability'
 
-    def match(self, collection):
+    def addProbability(self, collection, rename=False):
         """ Combine this collection with the given S2 collection """
         # Join S2 SR with cloud probability dataset to add cloud mask.
-        matched = ee.Join.saveFirst(self.band).apply(
+        name = self.probability.alias if rename else self.probability.name
+        matched = ee.Join.saveFirst(name).apply(
             primary=collection,
             secondary=self.collection(),
             condition=ee.Filter.equals(leftField='system:index',
@@ -545,18 +545,25 @@ class S2Cloudless(ImageCollection):
         )
 
         def wrap(image):
-            match = ee.Image(image.get(self.band))
-            match = match.rename(self.band)
+            match = ee.Image(image.get(name))
+            match = match.rename(name)
             return ee.Image(image).addBands(match)
 
         return ee.ImageCollection(matched.map(wrap))
 
-    def apply(self, collection, threshold):
+    def apply(self, image, threshold, renamed=False):
+        """ Apply the mask to an image using the
+            given threshold. If the probability is higher than the threshold, it's
+            considered as cloud and therefore masked """
+        image = ee.Image(image)
+        name = self.probability.alias if renamed else self.probability.name
+        mask = image.select(name).lte(threshold)
+        return ee.Image(image.updateMask(mask))
+
+    def applyCollection(self, collection, threshold, renamed=False):
         """ Apply the mask to the images in a collection using the
-        given threshold """
-        matched = self.match(collection)
-        def wrap(image):
-            image = ee.Image(image)
-            mask = image.select(self.band).lte(threshold)
-            return ee.Image(image.updateMask(mask))
-        return ee.ImageCollection(matched.map(wrap))
+        given threshold. If the probability is higher than the threshold, it's
+        considered as cloud and therefore masked """
+        # name = self.probability.alias if renamed else self.probability.name
+        matched = self.addProbability(collection, renamed)
+        return ee.ImageCollection(matched.map(lambda i: self.apply(i, threshold, renamed)))

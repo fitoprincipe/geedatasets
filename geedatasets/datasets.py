@@ -405,7 +405,7 @@ Visualizers: {visualizers}
         original_names = {band.name: band.alias for band in self.bands}
         return geetools.tools.image.renameDict(image, original_names)
 
-    def proxyImage(self, renamed=False):
+    def proxyImage(self, renamed=False, masked=True):
         """ Create an Image with the band names, type and scale but empty """
         precisions = self.precisions(renamed=renamed)
         first_band = self.bands[0]
@@ -415,6 +415,8 @@ Visualizers: {visualizers}
             name = first_band.alias
 
         init = ee.Image.constant(0).rename(name)
+        if masked:
+            init = init.selfMask()
         init = convertPrecision(init, precisions[name])
         for i, band in enumerate(self.bands):
             if i == 0: continue
@@ -422,8 +424,9 @@ Visualizers: {visualizers}
                 name = band.name
             else:
                 name = band.alias
-
             img = ee.Image.constant(0).rename(name)
+            if masked:
+                img = img.selfMask()
             img = convertPrecision(img, precisions[name])
             init = init.addBands(img)
 

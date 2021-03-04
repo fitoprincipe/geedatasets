@@ -305,3 +305,13 @@ class RangeBand(Band):
                                         units, scale)
         self.min = min
         self.max = max
+
+    def getMask(self, image, expression, name='mask', renamed=False):
+        """ Get a mask using an expression and rename it with the given name
+        (mask by default). The expression MUST use the name of the band """
+        bname = self.alias if renamed else self.name
+        band = image.select(bname)
+        mask = band.expression(expression, {
+            bname: band
+        }).rename(name)
+        return image.addBands(mask)
