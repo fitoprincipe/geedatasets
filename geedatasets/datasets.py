@@ -9,6 +9,7 @@ class Dataset:
     """ Parent class for common operations """
     id = None
     short_name = None
+    short_name_property = 'GEEDATASETS_SHORT_NAME'
     type = None
 
     def __init__(self, **kwargs):
@@ -237,10 +238,11 @@ Visualizers: {visualizers}
         params['masks'] = masks
         return self.INFO.format(**params)
 
-    def collection(self, bounds=None, date=None):
+    def collection(self, bounds=None, date=None, **kwargs):
         """ Google Earth Engine Original Image Collection.
         You can filter by bounds and date using parameters
         """
+        shortname_prop = kwargs.get('short_name_property', self.short_name_property)
         col = self.eeObject()
         if isinstance(bounds, (ee.Feature, ee.FeatureCollection, ee.Image)):
             bounds = bounds.geometry()
@@ -253,6 +255,10 @@ Visualizers: {visualizers}
             col = col.filterDate(ee.Date(date[0]), ee.Date(date[1]))
         elif isinstance(date, (str, ee.Date)):
             col = col.filterDate(ee.Date(date))
+
+        if shortname_prop:
+            col = col.map(lambda i: i.set(shortname_prop, self.short_name))
+
         return col
 
     def getMask(self, name):
