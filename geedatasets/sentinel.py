@@ -518,8 +518,10 @@ class Sentinel1(ImageCollection):
             f = self._lee_filter(im.select(band))
             return im.addBands(f, overwrite=True)
 
-        filtered = ee.Image(bands.iterate(wrap, image))
-        db = self.convert_to_db(filtered)
+        filtered = ee.Image(bands.iterate(wrap, image))\
+                     .copyProperties(source=image)\
+                     .set('system:time_start', image.date().millis())
+        db = self.convert_to_db(ee.Image(filtered))
         return db
 
 
