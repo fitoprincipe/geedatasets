@@ -285,8 +285,8 @@ class OLI:
 class Landsat1(MSS, Landsat):
     """ Landsat 1 """
     number = 1
-    start_date = '1975-01-22'
-    end_date = '1978-01-07'
+    start_date = '1972-07-26'
+    end_date = '1978-01-06'
 
 
 @register
@@ -322,8 +322,8 @@ class Landsat1RAWT2(Tier2, Landsat1RAW):
 
 class Landsat2(MSS, Landsat):
     number = 2
-    start_date = '1972-07-23'
-    end_date = '1982-02-26'
+    start_date = '1975-01-31'
+    end_date = '1982-02-03'
 
 
 @register
@@ -351,8 +351,8 @@ class Landsat2RAWT2(Tier2, Landsat2RAW):
 
 class Landsat3(MSS, Landsat):
     number = 3
-    start_date = '1978-03-05'
-    end_date = '1983-03-31'
+    start_date = '1978-06-03'
+    end_date = '1983-02-23'
 
 
 @register
@@ -379,8 +379,8 @@ class Landsat3RAWT2(Tier2, Landsat3RAW):
 
 class Landsat4MSS(MSS, Landsat):
     number = 4
-    start_date = '1982-07-16'
-    end_date = '1993-12-14'
+    start_date = '1982-08-14'
+    end_date = '1992-08-28'
 
 
 @register
@@ -417,8 +417,8 @@ class Landsat4MSSRAWT2(Tier2, Landsat4MSSRAW):
 class Landsat4TM(TM, Landsat):
     """ Landsat 4 TM Raw Tier 1 """
     number = 4
-    start_date = '1982-07-16'
-    end_date = '1993-12-14'
+    start_date = '1982-08-22'
+    end_date = '1993-11-18'
 
 
 @register
@@ -540,8 +540,8 @@ class Landsat4SRT2(Tier2, Landsat4SR):
 
 class Landsat5MSS(MSS, Landsat):
     number = 5
-    start_date = '1984-01-01'
-    end_date = '2012-05-05'
+    start_date = '1984-04-09'
+    end_date = '2013-01-01'
 
 
 @register
@@ -579,7 +579,7 @@ class Landsat5MSSRAWT2(Tier2, Landsat5MSSRAW):
 class Landsat5TM(TM, Landsat):
     """ Landsat 5 TM Raw Tier 1 """
     number = 5
-    start_date = '1984-04-16'
+    start_date = '1984-03-16'
     end_date = '2012-05-05'
 
 
