@@ -702,6 +702,7 @@ class Landsat7ETM(ETM, Landsat):
     number = 7
     start_date = '1999-05-28'
     end_date = None
+    scl_off = '2003-05-31'
 
 
 @register
@@ -924,7 +925,7 @@ class Landsat8SR(Tier1, SR, Landsat8OLI):
     swir2 = OLI.swir2(**SR._extra)
     thermal1 = OLI.thermal(**SR._extra)
     thermal2 = OLI.thermal2(**SR._extra)
-    bands = (aerosol, blue, green, red, nir, swir, thermal1, thermal2,
+    bands = (aerosol, blue, green, red, nir, swir, swir2, thermal1, thermal2,
              OLI.SR.aerosol, SR.pixel_qa, OLI.SR.radsat_qa)
     visualizers = (
         Visualization.trueColor([red, green, blue]),
