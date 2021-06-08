@@ -3,7 +3,7 @@
 from .visualization import *
 from .datasets import OpticalSatellite, ImageCollection
 from .bands import OpticalBand, BitBand, ClassificationBand, ExpressionBand, \
-    RangeBand
+    RangeBand, Precisions
 from .masks import Mask
 from . import helpers
 import geetools
@@ -29,7 +29,7 @@ Visualizers: {visualizers}
     start_date = '2015-06-23'
     end_date = None
     cloud_cover = 'CLOUD_COVERAGE_ASSESSMENT'
-    _common = {'scale':0.0001, 'precision': 'uint16'}
+    _common = {'scale':0.0001, 'precision': Precisions.uint16}
     aerosol = OpticalBand('B1', 'aerosol', resolution=60, **_common)
     blue = OpticalBand('B2', 'blue', resolution=10, **_common)
     green = OpticalBand('B3', 'green', resolution=10, **_common)
@@ -43,9 +43,9 @@ Visualizers: {visualizers}
     swir = OpticalBand('B11', 'swir', resolution=20, **_common)
     swir2 = OpticalBand('B12', 'swir2', resolution=20, **_common)
     qa10 = BitBand(name='QA10', alias='qa10', bits=dict(), resolution=10,
-                   precision='uint16')
+                   precision=Precisions.uint16)
     qa20 = BitBand(name='QA20', alias='qa20', bits=dict(), resolution=20,
-                   precision='uint32')
+                   precision=Precisions.uint32)
     qa60 = BitBand(
         'QA60', 'qa60',
         precision='uint16',
@@ -193,9 +193,9 @@ class Sentinel2SR(Sentinel2):
     short_name = 'S2SR'
     start_date = '2017-03-28'
     process = 'SR'
-    aot = OpticalBand('AOT', 'aerosol_thickness', precision='uint16',
+    aot = OpticalBand('AOT', 'aerosol_thickness', precision=Precisions.uint16,
                       resolution=10)
-    wvp = OpticalBand('WVP', 'water_vapor_pressure', precision='uint16',
+    wvp = OpticalBand('WVP', 'water_vapor_pressure', precision=Precisions.uint16,
                       resolution=10)
 
     scl = ClassificationBand(
@@ -222,16 +222,16 @@ class Sentinel2SR(Sentinel2):
                    'cirrus', 'snow']
     )
     tci_r = OpticalBand(name='TCI_R', alias='true_color_red',
-                        precision='uint8', resolution=10)
+                        precision=Precisions.uint8, resolution=10)
     tci_g = OpticalBand(name='TCI_G', alias='true_color_blue',
-                        precision='uint8', resolution=10)
+                        precision=Precisions.uint8, resolution=10)
     tci_b = OpticalBand(name='TCI_B', alias='true_color_green',
-                        precision='uint8', resolution=10)
+                        precision=Precisions.uint8, resolution=10)
 
     cloud_prob = OpticalBand('MSK_CLDPRB', 'cloud_probability', 'percentage',
-                             precision='uint8', resolution=20)
+                             precision=Precisions.uint8, resolution=20)
     snow_prob = OpticalBand('MSK_SNWPRB', 'snow_probability', 'percentage',
-                             precision='uint8', resolution=10)
+                             precision=Precisions.uint8, resolution=10)
 
 
     # Add visualizers
@@ -273,11 +273,12 @@ class Sentinel1(ImageCollection):
     start_date = '2014-10-03'
     end_date = None
     polarizations = ('HH', 'HH-HV', 'VV', 'VV-VH')
-    HH = OpticalBand('HH', 'HH', 'db', precision='double', resolution=10)
-    HV = OpticalBand('HV', 'HV', 'db', precision='double', resolution=10)
-    VH = OpticalBand('VH', 'VH', 'db', precision='double', resolution=10)
-    VV = OpticalBand('VV', 'VV', 'db', precision='double', resolution=10)
-    angle = OpticalBand('angle', 'angle', 'degrees', precision='float', resolution=10)
+    HH = OpticalBand('HH', 'HH', 'db', precision=Precisions.double, resolution=10)
+    HV = OpticalBand('HV', 'HV', 'db', precision=Precisions.double, resolution=10)
+    VH = OpticalBand('VH', 'VH', 'db', precision=Precisions.double, resolution=10)
+    VV = OpticalBand('VV', 'VV', 'db', precision=Precisions.double, resolution=10)
+    angle = OpticalBand('angle', 'angle', 'degrees',
+                        precision=Precisions.float, resolution=10)
     bands = (HH, HV, VH, VV, angle)
     masks = (Mask.empty(), )
 
@@ -289,7 +290,7 @@ class Sentinel1(ImageCollection):
         ( (10**(VV/10)) + (10**(VH/10)) )
         """,
         [VV, VH],
-        precision='float',
+        precision=Precisions.float,
         resolution=10
     )
 
@@ -533,7 +534,7 @@ class S2Cloudless(ImageCollection):
     start_date = '2015-06-23'
     end_date = None
     probability = RangeBand('probability', 'probability', 0, 100,
-                            'uint8', 10, 'percentage', 1)
+                            Precisions.uint8, 10, 'percentage', 1)
     bands = (probability,)
 
     def addProbability(self, collection, rename=False):

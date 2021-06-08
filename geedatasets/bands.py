@@ -4,6 +4,19 @@ import ee
 import geetools
 
 
+class Precisions:
+    int8 = 'int8'
+    int16 = 'int16'
+    int32 = 'int32'
+    uint8 = 'uint8'
+    uint16 = 'uint16'
+    uint32 = 'uint32'
+    int64 = 'int64'
+    float = 'float'
+    double = 'double'
+    byte = 'byte'
+
+
 class Band:
     """ Bands """
     BAND_STR = """Band {name}({alias}):
@@ -15,7 +28,7 @@ units: {units}"""
                            'int16', 'uint32', 'int32', 'int64', 'byte', None)
 
     def __init__(self, name, alias, precision=None, resolution=None,
-                 units=None, scale=1):
+                 units=None, scale=1, description=None):
         """ Band object
 
         :param name: band original name (from GEE)
@@ -31,6 +44,7 @@ units: {units}"""
         self.resolution = resolution
         self.units = units
         self.scale = scale
+        self.description = description
 
     def __str__(self):
         return self.BAND_STR.format(**self.__dict__, precision=self.precision)
@@ -299,10 +313,10 @@ class ExpressionBand(Band):
 
 class RangeBand(Band):
     def __init__(self, name, alias, min=None, max=None, precision=None,
-                 resolution=None, units=None, scale=1):
+                 resolution=None, units=None, scale=1, **kwargs):
         """ A continue range band. For example 'cloud probability'. """
         super(RangeBand, self).__init__(name, alias, precision, resolution,
-                                        units, scale)
+                                        units, scale, **kwargs)
         self.min = min
         self.max = max
 

@@ -2,7 +2,8 @@
 """ Google Earth Engine Landsat Collections """
 from .visualization import *
 from .datasets import OpticalSatellite, ImageCollection
-from .bands import OpticalBand, BitBand, ClassificationBand, ExpressionBand
+from .bands import OpticalBand, BitBand, ClassificationBand, ExpressionBand,\
+    Precisions
 from .helpers import TODAY
 from functools import partial
 from . import register
@@ -89,13 +90,13 @@ def atm_op_decoder(image):
 
 
 class SR:
-    _extra = dict(scale=0.0001, precision='int16')
+    _extra = dict(scale=0.0001, precision=Precisions.int16)
     process = 'SR'
 
     atm_op = ClassificationBand(
         name='sr_atmos_opacity',
         alias='atmos_opacity',
-        precision='int16',
+        precision=Precisions.int16,
         resolution=30,
         classes= dict(
             clear= 'value<0.1',
@@ -112,7 +113,7 @@ class SR:
     sr_cloud_qa = BitBand(
         name='sr_cloud_qa',
         alias='cloud_qa',
-        precision='uint8',
+        precision=Precisions.uint8,
         resolution=30,
         bits={
             '0': {1:'ddv'},
@@ -128,7 +129,7 @@ class SR:
     pixel_qa = BitBand(
         name='pixel_qa',
         alias='pixel_qa',
-        precision='uint16',
+        precision=Precisions.uint16,
         resolution=30,
         bits={'1': {1:'clear'}, '2': {1:'water'},
               '3': {1:'shadow'}, '4': {1:'snow'},
@@ -144,7 +145,7 @@ class SR:
     radsat_qa = BitBand(
         name='radsat_qa',
         alias='radsat_qa',
-        precision='uint8',
+        precision=Precisions.uint8,
         resolution=30,
         bits={
             1: {1:'B1_saturated'},
@@ -163,15 +164,19 @@ class SR:
 
 class MSS:
     sensor = 'MSS'
-    green = partial(OpticalBand, alias='green', resolution=60, units='DN', wavelength=(0.5, 0.6))
-    red = partial(OpticalBand, alias='red', resolution=60, units='DN', wavelength=(0.6, 0.7))
-    nir = partial(OpticalBand, alias='nir', resolution=60, units='DN', wavelength=(0.7, 0.8))
-    nir2 = partial(OpticalBand, alias='nir2', resolution=30, units='DN', wavelength=(0.8, 1.1))
+    green = partial(OpticalBand, alias='green', resolution=60,
+                    units='DN', wavelength=(0.5, 0.6))
+    red = partial(OpticalBand, alias='red', resolution=60,
+                  units='DN', wavelength=(0.6, 0.7))
+    nir = partial(OpticalBand, alias='nir', resolution=60,
+                  units='DN', wavelength=(0.7, 0.8))
+    nir2 = partial(OpticalBand, alias='nir2', resolution=30,
+                   units='DN', wavelength=(0.8, 1.1))
 
     bqa = BitBand(
         name='BQA',
         alias='bqa',
-        precision='uint16',
+        precision=Precisions.uint16,
         resolution=60,
         bits={'4': {1: 'cloud'}},
         negatives=['cloud']
@@ -181,16 +186,23 @@ class MSS:
 
 class TM:
     sensor = 'TM'
-    blue = partial(OpticalBand, 'B1', 'blue', resolution=30, wavelength=(0.45, 0.52))
-    green = partial(OpticalBand, 'B2', 'green', resolution=30, wavelength=(0.52, 0.6))
-    red = partial(OpticalBand, 'B3', 'red', resolution=30, wavelength=(0.63, 0.69))
-    nir = partial(OpticalBand, 'B4', 'nir', resolution=30, wavelength=(0.76, 0.9))
-    swir = partial(OpticalBand, 'B5', 'swir', resolution=30, wavelength=(1.55, 1.75))
-    thermal = partial(OpticalBand, 'B6', 'thermal', units='Kelvin', resolution=30, wavelength=(10.4, 12.5))
-    swir2 = partial(OpticalBand, 'B7', 'swir2', resolution=30, wavelength=(2.08, 2.35))
+    blue = partial(OpticalBand, 'B1', 'blue', resolution=30,
+                   wavelength=(0.45, 0.52))
+    green = partial(OpticalBand, 'B2', 'green', resolution=30,
+                    wavelength=(0.52, 0.6))
+    red = partial(OpticalBand, 'B3', 'red', resolution=30,
+                  wavelength=(0.63, 0.69))
+    nir = partial(OpticalBand, 'B4', 'nir', resolution=30,
+                  wavelength=(0.76, 0.9))
+    swir = partial(OpticalBand, 'B5', 'swir', resolution=30,
+                   wavelength=(1.55, 1.75))
+    thermal = partial(OpticalBand, 'B6', 'thermal', units='Kelvin',
+                      resolution=30, wavelength=(10.4, 12.5))
+    swir2 = partial(OpticalBand, 'B7', 'swir2', resolution=30,
+                    wavelength=(2.08, 2.35))
     bqa = BitBand(
         name='BQA', alias='bqa',
-        precision='uint16', resolution=30,
+        precision=Precisions.uint16, resolution=30,
         bits= {
             '4': {1: 'cloud'},
             '5-6': {3: 'high_confidence_cloud'},
@@ -210,10 +222,12 @@ class ETM:
     nir = TM.nir
     swir = TM.swir
     thermal = TM.thermal
-    thermal_vcid_1 = partial(OpticalBand, 'B6_VCID_1', 'B6_vcid_1', units='Kelvin',
-                                 resolution=30, wavelength=(10.4, 12.5))
-    thermal_vcid_2 = partial(OpticalBand, 'B6_VCID_2', 'B6_vcid_2', units='Kelvin',
-                                 resolution=30, wavelength=(10.4, 12.5))
+    thermal_vcid_1 = partial(OpticalBand, 'B6_VCID_1', 'B6_vcid_1',
+                             units='Kelvin', resolution=30,
+                             wavelength=(10.4, 12.5))
+    thermal_vcid_2 = partial(OpticalBand, 'B6_VCID_2', 'B6_vcid_2',
+                             units='Kelvin', resolution=30,
+                             wavelength=(10.4, 12.5))
     swir2 = TM.swir2
     bqa = TM.bqa
     masks = (Mask.fromBand('BQA', bqa),)
@@ -221,20 +235,31 @@ class ETM:
 
 class OLI:
     sensor = 'OLI'
-    aerosol = partial(OpticalBand, 'B1', 'coastal_aerosol', resolution=30, wavelength=(0.43, 0.45))
-    blue = partial(OpticalBand, 'B2', 'blue', resolution=30, wavelength=(0.45, 0.51))
-    green = partial(OpticalBand, 'B3', 'green', resolution=30, wavelength=(0.53, 0.59))
-    red = partial(OpticalBand, 'B4', 'red', resolution=30, wavelength=(0.64, 0.67))
-    nir = partial(OpticalBand, 'B5', 'nir', resolution=30, wavelength=(0.85, 0.88))
-    swir = partial(OpticalBand, 'B6', 'swir', resolution=30, wavelength=(1.57, 1.65))
-    swir2 = partial(OpticalBand, 'B7', 'swir2', resolution=30, wavelength=(2.11, 2.29))
-    pan = partial(OpticalBand, 'B8', 'pan', resolution=15, wavelength=(0.52, 0.9))
-    cirrus = partial(OpticalBand, 'B9', 'cirrus', resolution=15, wavelength=(1.36, 1.38))
-    thermal = partial(OpticalBand, 'B10', 'thermal', resolution=30, scale=0.1, wavelength=(10.60, 11.19))
-    thermal2 = partial(OpticalBand, 'B11', 'thermal2', resolution=30, scale=0.1, wavelength=(11.50, 12.51))
+    aerosol = partial(OpticalBand, 'B1', 'coastal_aerosol',
+                      resolution=30, wavelength=(0.43, 0.45))
+    blue = partial(OpticalBand, 'B2', 'blue',
+                   resolution=30, wavelength=(0.45, 0.51))
+    green = partial(OpticalBand, 'B3', 'green',
+                    resolution=30, wavelength=(0.53, 0.59))
+    red = partial(OpticalBand, 'B4', 'red',
+                  resolution=30, wavelength=(0.64, 0.67))
+    nir = partial(OpticalBand, 'B5', 'nir',
+                  resolution=30, wavelength=(0.85, 0.88))
+    swir = partial(OpticalBand, 'B6', 'swir',
+                   resolution=30, wavelength=(1.57, 1.65))
+    swir2 = partial(OpticalBand, 'B7', 'swir2',
+                    resolution=30, wavelength=(2.11, 2.29))
+    pan = partial(OpticalBand, 'B8', 'pan',
+                  resolution=15, wavelength=(0.52, 0.9))
+    cirrus = partial(OpticalBand, 'B9', 'cirrus',
+                     resolution=15, wavelength=(1.36, 1.38))
+    thermal = partial(OpticalBand, 'B10', 'thermal',
+                      resolution=30, scale=0.1, wavelength=(10.60, 11.19))
+    thermal2 = partial(OpticalBand, 'B11', 'thermal2',
+                       resolution=30, scale=0.1, wavelength=(11.50, 12.51))
     bqa = BitBand(
         name='BQA', alias='bqa',
-        precision='uint16', resolution=30,
+        precision=Precisions.uint16, resolution=30,
         bits= {
             '4': {1: 'cloud'},
             '5-6': {3: 'high_confidence_cloud'},
@@ -245,11 +270,11 @@ class OLI:
     )
 
     class RAW:
-        _extra = dict(precision='uint16')
+        _extra = dict(precision=Precisions.uint16)
 
     class SR:
         aerosol = BitBand('sr_aerosol', 'sr_aerosol',
-                          precision='uint8',
+                          precision=Precisions.uint8,
                           bits= {
                               '1': {1: 'aerosol_valid'},
                               '2': {1: 'aerosol_interpolated'},
@@ -261,7 +286,7 @@ class OLI:
         radsat_qa = BitBand(
             name='radsat_qa',
             alias='radsat_qa',
-            precision='uint16',
+            precision=Precisions.uint16,
             resolution=30,
             bits={
                 1: {1:'B1_saturated'},
@@ -519,10 +544,10 @@ class Landsat4SR(Tier1, SR, Landsat4TM):
     masks = (Mask.fromBand('pixel_qa', SR.pixel_qa),
              Mask.fromBand('cloud_qa', SR.sr_cloud_qa))
     ndvi = ExpressionBand('NDVI', 'ndvi', '(nir-red)/(nir+red)',
-                          [nir, red], precision='float')
+                          [nir, red], precision=Precisions.float)
 
     nbr = ExpressionBand('NBR', 'nbr', '(nir-swir)/(nir+swir)',
-                         [nir, swir], precision='float')
+                         [nir, swir], precision=Precisions.float)
     extra_bands = (ndvi, nbr)
 
     def __init__(self, **kwargs):
@@ -602,9 +627,9 @@ class Landsat5RAW(Tier1, RAW, Landsat5TM):
     )
     masks = (Mask.fromBand('BQA', TM.bqa),)
     ndvi = ExpressionBand('NDVI', 'ndvi', '(nir-red)/(nir+red)',
-                          [nir, red], precision='float')
+                          [nir, red], precision=Precisions.float)
     nbr = ExpressionBand('NBR', 'nbr', '(nir-swir)/(nir+swir)',
-                         [nir, swir], precision='float')
+                         [nir, swir], precision=Precisions.float)
     extra_bands = (ndvi, nbr)
 
     def __init__(self, **kwargs):
@@ -639,9 +664,9 @@ class Landsat5TOA(Tier1, TOA, Landsat5TM):
     )
     masks = (Mask.fromBand('BQA', TM.bqa),)
     ndvi = ExpressionBand('NDVI', 'ndvi', '(nir-red)/(nir+red)',
-                          [nir, red], precision='float')
+                          [nir, red], precision=Precisions.float)
     nbr = ExpressionBand('NBR', 'nbr', '(nir-swir)/(nir+swir)',
-                         [nir, swir], precision='float')
+                         [nir, swir], precision=Precisions.float)
     extra_bands = (ndvi, nbr)
 
     def __init__(self, **kwargs):
@@ -679,9 +704,9 @@ class Landsat5SR(Tier1, SR, Landsat5TM):
     masks = (Mask.fromBand('pixel_qa', SR.pixel_qa),
              Mask.fromBand('cloud_qa', SR.sr_cloud_qa))
     ndvi = ExpressionBand('NDVI', 'ndvi', '(nir-red)/(nir+red)',
-                          [nir, red], precision='float')
+                          [nir, red], precision=Precisions.float)
     nbr = ExpressionBand('NBR', 'nbr', '(nir-swir)/(nir+swir)',
-                         [nir, swir], precision='float')
+                         [nir, swir], precision=Precisions.float)
     extra_bands = (ndvi, nbr)
 
     def __init__(self, **kwargs):
@@ -725,9 +750,9 @@ class Landsat7RAW(Tier1, RAW, Landsat7ETM):
     )
     masks = (Mask.fromBand('BQA', TM.bqa),)
     ndvi = ExpressionBand('NDVI', 'ndvi', '(nir-red)/(nir+red)',
-                          [nir, red], precision='float')
+                          [nir, red], precision=Precisions.float)
     nbr = ExpressionBand('NBR', 'nbr', '(nir-swir)/(nir+swir)',
-                         [nir, swir], precision='float')
+                         [nir, swir], precision=Precisions.float)
     extra_bands = (ndvi, nbr)
 
     def __init__(self, **kwargs):
@@ -763,9 +788,9 @@ class Landsat7TOA(Tier1, TOA, Landsat7ETM):
     )
     masks = (Mask.fromBand('BQA', TM.bqa),)
     ndvi = ExpressionBand('NDVI', 'ndvi', '(nir-red)/(nir+red)',
-                          [nir, red], precision='float')
+                          [nir, red], precision=Precisions.float)
     nbr = ExpressionBand('NBR', 'nbr', '(nir-swir)/(nir+swir)',
-                         [nir, swir], precision='float')
+                         [nir, swir], precision=Precisions.float)
     extra_bands = (ndvi, nbr)
 
     def __init__(self, **kwargs):
@@ -803,9 +828,9 @@ class Landsat7SR(Tier1, SR, Landsat7ETM):
     masks = (Mask.fromBand('pixel_qa', SR.pixel_qa),
              Mask.fromBand('cloud_qa', SR.sr_cloud_qa))
     ndvi = ExpressionBand('NDVI', 'ndvi', '(nir-red)/(nir+red)',
-                          [nir, red], precision='float')
+                          [nir, red], precision=Precisions.float)
     nbr = ExpressionBand('NBR', 'nbr', '(nir-swir)/(nir+swir)',
-                         [nir, swir], precision='float')
+                         [nir, swir], precision=Precisions.float)
     extra_bands = (ndvi, nbr)
 
     def __init__(self, **kwargs):
@@ -852,9 +877,9 @@ class Landsat8RAW(Tier1, RAW, Landsat8OLI):
     )
     masks = (Mask.fromBand('BQA', OLI.bqa),)
     ndvi = ExpressionBand('NDVI', 'ndvi', '(nir-red)/(nir+red)',
-                          [nir, red], precision='float')
+                          [nir, red], precision=Precisions.float)
     nbr = ExpressionBand('NBR', 'nbr', '(nir-swir)/(nir+swir)',
-                         [nir, swir], precision='float')
+                         [nir, swir], precision=Precisions.float)
     extra_bands = (ndvi, nbr)
 
     def __init__(self, **kwargs):
@@ -894,9 +919,9 @@ class Landsat8TOA(Tier1, TOA, Landsat8OLI):
     )
     masks = (Mask.fromBand('BQA', OLI.bqa),)
     ndvi = ExpressionBand('NDVI', 'ndvi', '(nir-red)/(nir+red)',
-                          [nir, red], precision='float')
+                          [nir, red], precision=Precisions.float)
     nbr = ExpressionBand('NBR', 'nbr', '(nir-swir)/(nir+swir)',
-                         [nir, swir], precision='float')
+                         [nir, swir], precision=Precisions.float)
     extra_bands = (ndvi, nbr)
 
     def __init__(self, **kwargs):
@@ -934,9 +959,9 @@ class Landsat8SR(Tier1, SR, Landsat8OLI):
     )
     masks = (Mask.fromBand('pixel_qa', SR.pixel_qa),)
     ndvi = ExpressionBand('NDVI', 'ndvi', '(nir-red)/(nir+red)',
-                          [nir, red], precision='float')
+                          [nir, red], precision=Precisions.float)
     nbr = ExpressionBand('NBR', 'nbr', '(nir-swir)/(nir+swir)',
-                         [nir, swir], precision='float')
+                         [nir, swir], precision=Precisions.float)
     extra_bands = (ndvi, nbr)
 
     def __init__(self, **kwargs):
