@@ -1,6 +1,13 @@
 # coding=utf-8
 
 
+class Visualizers:
+    """ Proxy class to hold many visualizers """
+    def __init__(self, **kwargs):
+        for name, vis in kwargs.items():
+            setattr(self, name, lambda renamed=False: vis.params(renamed=renamed))
+
+
 class Visualization:
     def __init__(self, name, bands, min, max, palette=None, **kwargs):
         # bands must be 1 or 3

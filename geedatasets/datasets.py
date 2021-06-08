@@ -36,7 +36,7 @@ Date: {date}
     bands = tuple()
     date = None
     region = None
-    visualizers = tuple()
+    visualizers = None
     extra_bands = tuple()
 
     def test(self, image=None, renamed=False, verbose=False):
@@ -166,7 +166,7 @@ Visualizers: {visualizers}
     start_date = None
     end_date = None
     region = None
-    visualizers = tuple()
+    visualizers = None
     masks = tuple()
     extra_bands = tuple()
 

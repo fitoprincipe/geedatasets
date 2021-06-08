@@ -299,8 +299,8 @@ class Landsat1RAW(Tier1, RAW, Landsat1):
     nir = MSS.nir(name='B6', **RAW._extra)
     nir2 = MSS.nir2(name='B7', **RAW._extra)
     bands = (green, red, nir, nir2, MSS.bqa)
-    visualizers = (
-        Visualization.falseColor([nir, red, green]),
+    visualizers = Visualizers(
+        FalseColor = Visualization.falseColor([nir, red, green]),
     )
     ndvi = ExpressionBand('NDVI', 'ndvi', '(nir-red)/(nir+red)',
                           [nir, red], precision='float')
@@ -393,8 +393,8 @@ class Landsat4MSSRAW(Tier1, RAW, Landsat4MSS):
     nir = MSS.nir(name='B3', **RAW._extra)
     nir2 = MSS.nir2(name='B4', **RAW._extra)
     bands = (green, red, nir, nir2, MSS.bqa)
-    visualizers = (
-        Visualization.falseColor([nir, red, green]),
+    visualizers = Visualizers(
+        FalseColor = Visualization.falseColor([nir, red, green]),
     )
     ndvi = ExpressionBand('NDVI', 'ndvi', '(nir-red)/(nir+red)',
                           [nir, red], precision='float')
@@ -433,10 +433,10 @@ class Landsat4RAW(Tier1, RAW, Landsat4TM):
     thermal = TM.thermal(**RAW._extra)
     swir2 = TM.swir2(**RAW._extra)
     bands = (blue, green, red, nir, swir, thermal, swir2, TM.bqa)
-    visualizers = (
-        Visualization.trueColor([red, green, blue]),
-        Visualization.falseColor([nir, red, green]),
-        Visualization.NSR([nir, swir, red])
+    visualizers = Visualizers(
+        TrueColor = Visualization.trueColor([red, green, blue]),
+        FalseColor = Visualization.falseColor([nir, red, green]),
+        NSR = Visualization.NSR([nir, swir, red])
     )
     masks = (Mask.fromBand('BQA', TM.bqa),)
     ndvi = ExpressionBand('NDVI', 'ndvi', '(nir-red)/(nir+red)',
@@ -471,10 +471,10 @@ class Landsat4TOA(Tier1, TOA, Landsat4TM):
     thermal = TM.thermal(**TOA._extra)
     swir2 = TM.swir2(**TOA._extra)
     bands = (blue, green, red, nir, swir, thermal, swir2, TM.bqa)
-    visualizers = (
-        Visualization.trueColor([red, green, blue]),
-        Visualization.falseColor([nir, red, green]),
-        Visualization.NSR([nir, swir, red])
+    visualizers = Visualizers(
+        TrueColor = Visualization.trueColor([red, green, blue]),
+        FalseColor = Visualization.falseColor([nir, red, green]),
+        NSR = Visualization.NSR([nir, swir, red])
     )
     masks = (Mask.fromBand('BQA', TM.bqa),)
     ndvi = ExpressionBand('NDVI', 'ndvi', '(nir-red)/(nir+red)',
@@ -510,11 +510,11 @@ class Landsat4SR(Tier1, SR, Landsat4TM):
     swir2 = TM.swir2(**SR._extra)
     bands = (blue, green, red, nir, swir, thermal, swir2, SR.atm_op,
              SR.sr_cloud_qa, SR.pixel_qa, SR.radsat_qa)
-    visualizers = (
-        Visualization.trueColor([red, green, blue]),
-        Visualization.falseColor([nir, red, green]),
-        Visualization.NSR([nir, swir, red]),
-        SR.atm_op_vis
+    visualizers = Visualizers(
+        TrueColor = Visualization.trueColor([red, green, blue]),
+        FalseColor = Visualization.falseColor([nir, red, green]),
+        NSR = Visualization.NSR([nir, swir, red]),
+        AtmosphericOpacity = SR.atm_op_vis
     )
     masks = (Mask.fromBand('pixel_qa', SR.pixel_qa),
              Mask.fromBand('cloud_qa', SR.sr_cloud_qa))
@@ -554,8 +554,8 @@ class Landsat5MSSRAW(Tier1, RAW, Landsat4MSS):
     nir = MSS.nir(name='B3', **RAW._extra)
     nir2 = MSS.nir2(name='B4', **RAW._extra)
     bands = (green, red, nir, nir2, MSS.bqa)
-    visualizers = (
-        Visualization.falseColor([nir, red, green]),
+    visualizers = Visualizers(
+        FalseColor = Visualization.falseColor([nir, red, green]),
     )
     masks = (Mask.fromBand('BQA', MSS.bqa),)
     ndvi = ExpressionBand('NDVI', 'ndvi', '(nir-red)/(nir+red)',
@@ -595,10 +595,10 @@ class Landsat5RAW(Tier1, RAW, Landsat5TM):
     thermal = TM.thermal(**RAW._extra)
     swir2 = TM.swir2(**RAW._extra)
     bands = (blue, green, red, nir, swir, thermal, swir2, TM.bqa)
-    visualizers = (
-        Visualization.trueColor([red, green, blue]),
-        Visualization.falseColor([nir, red, green]),
-        Visualization.NSR([nir, swir, red])
+    visualizers = Visualizers(
+        TrueColor = Visualization.trueColor([red, green, blue]),
+        FalseColor = Visualization.falseColor([nir, red, green]),
+        NSR = Visualization.NSR([nir, swir, red])
     )
     masks = (Mask.fromBand('BQA', TM.bqa),)
     ndvi = ExpressionBand('NDVI', 'ndvi', '(nir-red)/(nir+red)',
@@ -632,10 +632,10 @@ class Landsat5TOA(Tier1, TOA, Landsat5TM):
     thermal = TM.thermal(**TOA._extra)
     swir2 = TM.swir2(**TOA._extra)
     bands = (blue, green, red, nir, swir, thermal, swir2, TM.bqa)
-    visualizers = (
-        Visualization.trueColor([red, green, blue]),
-        Visualization.falseColor([nir, red, green]),
-        Visualization.NSR([nir, swir, red])
+    visualizers = Visualizers(
+        TrueColor = Visualization.trueColor([red, green, blue]),
+        FalseColor = Visualization.falseColor([nir, red, green]),
+        NSR = Visualization.NSR([nir, swir, red])
     )
     masks = (Mask.fromBand('BQA', TM.bqa),)
     ndvi = ExpressionBand('NDVI', 'ndvi', '(nir-red)/(nir+red)',
@@ -670,11 +670,11 @@ class Landsat5SR(Tier1, SR, Landsat5TM):
     swir2 = TM.swir2(**SR._extra)
     bands = (blue, green, red, nir, swir, thermal, swir2, SR.atm_op,
              SR.sr_cloud_qa, SR.pixel_qa, SR.radsat_qa)
-    visualizers = (
-        Visualization.trueColor([red, green, blue]),
-        Visualization.falseColor([nir, red, green]),
-        Visualization.NSR([nir, swir, red]),
-        SR.atm_op_vis
+    visualizers = Visualizers(
+        TrueColor = Visualization.trueColor([red, green, blue]),
+        FalseColor = Visualization.falseColor([nir, red, green]),
+        NSR = Visualization.NSR([nir, swir, red]),
+        AtmosphericOpacity = SR.atm_op_vis
     )
     masks = (Mask.fromBand('pixel_qa', SR.pixel_qa),
              Mask.fromBand('cloud_qa', SR.sr_cloud_qa))
@@ -718,10 +718,10 @@ class Landsat7RAW(Tier1, RAW, Landsat7ETM):
     thermal1 = ETM.thermal_vcid_1(**RAW._extra)
     thermal2 = ETM.thermal_vcid_2(**RAW._extra)
     bands = (blue, green, red, nir, swir, thermal1, thermal2, swir2, TM.bqa)
-    visualizers = (
-        Visualization.trueColor([red, green, blue]),
-        Visualization.falseColor([nir, red, green]),
-        Visualization.NSR([nir, swir, red])
+    visualizers = Visualizers(
+        TrueColor = Visualization.trueColor([red, green, blue]),
+        FalseColor = Visualization.falseColor([nir, red, green]),
+        NSR = Visualization.NSR([nir, swir, red])
     )
     masks = (Mask.fromBand('BQA', TM.bqa),)
     ndvi = ExpressionBand('NDVI', 'ndvi', '(nir-red)/(nir+red)',
@@ -756,10 +756,10 @@ class Landsat7TOA(Tier1, TOA, Landsat7ETM):
     thermal1 = ETM.thermal_vcid_1(**TOA._extra)
     thermal2 = ETM.thermal_vcid_2(**TOA._extra)
     bands = (blue, green, red, nir, swir, thermal1, thermal2, swir2, TM.bqa)
-    visualizers = (
-        Visualization.trueColor([red, green, blue]),
-        Visualization.falseColor([nir, red, green]),
-        Visualization.NSR([nir, swir, red])
+    visualizers = Visualizers(
+        TrueColor = Visualization.trueColor([red, green, blue]),
+        FalseColor = Visualization.falseColor([nir, red, green]),
+        NSR = Visualization.NSR([nir, swir, red])
     )
     masks = (Mask.fromBand('BQA', TM.bqa),)
     ndvi = ExpressionBand('NDVI', 'ndvi', '(nir-red)/(nir+red)',
@@ -794,11 +794,11 @@ class Landsat7SR(Tier1, SR, Landsat7ETM):
     swir2 = ETM.swir2(**SR._extra)
     bands = (blue, green, red, nir, swir, thermal, swir2, SR.atm_op,
              SR.sr_cloud_qa, SR.pixel_qa, SR.radsat_qa)
-    visualizers = (
-        Visualization.trueColor([red, green, blue]),
-        Visualization.falseColor([nir, red, green]),
-        Visualization.NSR([nir, swir, red]),
-        SR.atm_op_vis
+    visualizers = Visualizers(
+        TrueColor = Visualization.trueColor([red, green, blue]),
+        FalseColor = Visualization.falseColor([nir, red, green]),
+        NSR = Visualization.NSR([nir, swir, red]),
+        AtmosphericOpacity = SR.atm_op_vis
     )
     masks = (Mask.fromBand('pixel_qa', SR.pixel_qa),
              Mask.fromBand('cloud_qa', SR.sr_cloud_qa))
@@ -845,10 +845,10 @@ class Landsat8RAW(Tier1, RAW, Landsat8OLI):
     thermal2 = OLI.thermal2(**OLI.RAW._extra)
     bands = (aerosol, blue, green, red, nir, swir, swir2, pan, cirrus,
              thermal1, thermal2, OLI.bqa)
-    visualizers = (
-        Visualization.trueColor([red, green, blue]),
-        Visualization.falseColor([nir, red, green]),
-        Visualization.NSR([nir, swir, red])
+    visualizers = Visualizers(
+        TrueColor = Visualization.trueColor([red, green, blue]),
+        FalseColor = Visualization.falseColor([nir, red, green]),
+        NSR = Visualization.NSR([nir, swir, red])
     )
     masks = (Mask.fromBand('BQA', OLI.bqa),)
     ndvi = ExpressionBand('NDVI', 'ndvi', '(nir-red)/(nir+red)',
@@ -887,10 +887,10 @@ class Landsat8TOA(Tier1, TOA, Landsat8OLI):
     thermal2 = OLI.thermal2(**TOA._extra)
     bands = (aerosol, blue, green, red, nir, swir, swir2, pan, cirrus,
              thermal1, thermal2, OLI.bqa)
-    visualizers = (
-        Visualization.trueColor([red, green, blue]),
-        Visualization.falseColor([nir, red, green]),
-        Visualization.NSR([nir, swir, red])
+    visualizers = Visualizers(
+        TrueColor = Visualization.trueColor([red, green, blue]),
+        FalseColor = Visualization.falseColor([nir, red, green]),
+        NSR = Visualization.NSR([nir, swir, red])
     )
     masks = (Mask.fromBand('BQA', OLI.bqa),)
     ndvi = ExpressionBand('NDVI', 'ndvi', '(nir-red)/(nir+red)',
@@ -927,10 +927,10 @@ class Landsat8SR(Tier1, SR, Landsat8OLI):
     thermal2 = OLI.thermal2(**SR._extra)
     bands = (aerosol, blue, green, red, nir, swir, swir2, thermal1, thermal2,
              OLI.SR.aerosol, SR.pixel_qa, OLI.SR.radsat_qa)
-    visualizers = (
-        Visualization.trueColor([red, green, blue]),
-        Visualization.falseColor([nir, red, green]),
-        Visualization.NSR([nir, swir, red])
+    visualizers = Visualizers(
+        TrueColor = Visualization.trueColor([red, green, blue]),
+        FalseColor = Visualization.falseColor([nir, red, green]),
+        NSR = Visualization.NSR([nir, swir, red])
     )
     masks = (Mask.fromBand('pixel_qa', SR.pixel_qa),)
     ndvi = ExpressionBand('NDVI', 'ndvi', '(nir-red)/(nir+red)',

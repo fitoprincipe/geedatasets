@@ -63,11 +63,12 @@ Visualizers: {visualizers}
     ndre = ExpressionBand('NDRE', 'ndre', '(nir-red_edge_1)/(nir+red_edge_1)',
                           [nir, red_edge_1], precision='float')
 
-    visualizers = (
-        Visualization.NSR([nir, swir, red]),
-        Visualization.trueColor([red, green, blue]),
-        Visualization.falseColor([nir, red, green])
-    )
+    visualizers = Visualizers(
+        NSR = Visualization.NSR([nir, swir, red]),
+        TrueColor = Visualization.trueColor([red, green, blue]),
+        FalseColor = Visualization.falseColor([nir, red, green]),
+        RGB = Visualization.trueColor([red, green, blue]),
+      )
 
     extra_bands = (ndvi, nbr, ndre)
 
@@ -233,12 +234,12 @@ class Sentinel2SR(Sentinel2):
                              precision='uint8', resolution=10)
 
 
-    # Add visualizer
-    visualizers = (
-        Visualization.NSR([Sentinel2.nir, Sentinel2.swir, Sentinel2.red]),
-        Visualization.trueColor([Sentinel2.red, Sentinel2.green, Sentinel2.blue]),
-        Visualization.falseColor([Sentinel2.nir, Sentinel2.red, Sentinel2.green]),
-        Visualization('SCL', [scl], 1, 11, palette=[
+    # Add visualizers
+    visualizers = Visualizers(
+        NSR = Visualization.NSR([Sentinel2.nir, Sentinel2.swir, Sentinel2.red]),
+        TrueColor = Visualization.trueColor([Sentinel2.red, Sentinel2.green, Sentinel2.blue]),
+        FalseColor = Visualization.falseColor([Sentinel2.nir, Sentinel2.red, Sentinel2.green]),
+        SCL = Visualization('SCL', [scl], 1, 11, palette=[
             '#ff0004', '#868686', '#774b0a', '#10d22c', '#ffff52', '#0000ff',
             '#818181', '#c0c0c0', '#f1f1f1', '#bac5eb', '#52fff9'
         ])
