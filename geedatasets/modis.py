@@ -109,10 +109,18 @@ class MOD11A1(Modis):
                            precision=Precisions.uint16,
                            scale=0.0005, resolution=1000,
                            description="Night clear-sky coverage")
+    LST_Day_deg = ExpressionBand('LST_Day_deg', 'LST_Day_deg',
+                                 "(LST_day*scale)-273.15",
+                                 [LST_Day_1km], dict(scale=LST_Day_1km.scale))
+    LST_Night_deg = ExpressionBand('LST_Night_deg', 'LST_Night_deg',
+                                 "(LST_night*scale)-273.15",
+                                 [LST_Night_1km], dict(scale=LST_Night_1km.scale))
 
     bands = (LST_Day_1km, QC_Day, Day_view_time, Day_view_angle, LST_Night_1km,
              QC_Night, Night_view_time, Night_view_angle, Emis_31, Emis_32,
              Clear_day_cov, Clear_night_cov)
+
+    extra_bands = (LST_Day_deg, LST_Night_deg)
 
     masks = (Mask.fromBand('QC_Day', QC_Day),
              Mask.fromBand('QC_night', QC_Night))
@@ -131,5 +139,19 @@ class MOD11A1(Modis):
                     '0602ff', '235cb1', '307ef3', '269db1', '30c8e2', '32d3ef',
                     '3be285', '3ff38f', '86e26f', '3ae237', 'b5e22e', 'd6e21f',
                     'fff705', 'ffd611', 'ffb613', 'ff8b13', 'ff6e08', 'ff500d',
-                    'ff0000', 'de0101', 'c21301', 'a71001', '911003'])
+                    'ff0000', 'de0101', 'c21301', 'a71001', '911003']),
+        LST_Day_deg = Visualization(
+            'LST_Day_deg', (LST_Day_deg,), -13.15, 56.85, palette=[
+                '040274', '040281', '0502a3', '0502b8', '0502ce', '0502e6',
+                '0602ff', '235cb1', '307ef3', '269db1','30c8e2', '32d3ef',
+                '3be285', '3ff38f', '86e26f', '3ae237','b5e22e', 'd6e21f',
+                'fff705', 'ffd611', 'ffb613', 'ff8b13','ff6e08', 'ff500d',
+                'ff0000', 'de0101', 'c21301', 'a71001','911003']),
+        LST_Night_deg = Visualization(
+            'LST_Night_deg', (LST_Night_deg,), -13.15, 56.85, palette=[
+                '040274', '040281', '0502a3', '0502b8', '0502ce', '0502e6',
+                '0602ff', '235cb1', '307ef3', '269db1', '30c8e2', '32d3ef',
+                '3be285', '3ff38f', '86e26f', '3ae237', 'b5e22e', 'd6e21f',
+                'fff705', 'ffd611', 'ffb613', 'ff8b13', 'ff6e08', 'ff500d',
+                'ff0000', 'de0101', 'c21301', 'a71001', '911003']),
     )
