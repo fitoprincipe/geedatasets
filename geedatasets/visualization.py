@@ -5,7 +5,7 @@ class Visualizers:
     """ Proxy class to hold many visualizers """
     def __init__(self, **kwargs):
         for name, vis in kwargs.items():
-            setattr(self, name, lambda renamed=False: vis.params(renamed=renamed))
+            setattr(self, name, vis)
 
 
 class Visualization:
