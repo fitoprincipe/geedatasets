@@ -358,11 +358,7 @@ Visualizers: {visualizers}
 
         :param option: see Visualization class
         """
-        options = [vis.name for vis in self.visualizers]
-        if option not in options:
-            raise ValueError('{} not in visualizers. Options are {}'.format(option, options))
-        visualizers = [vis for vis in self.visualizers if vis.name == option]
-        return visualizers[0].params(renamed)
+        return self.visualizers.get(option).params(renamed)
 
     def addBand(self, image, band, renamed=False):
         """ Add an expression band to an image """

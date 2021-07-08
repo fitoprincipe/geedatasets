@@ -228,9 +228,9 @@ class Sentinel2SR(Sentinel2):
     tci_b = OpticalBand(name='TCI_B', alias='true_color_green',
                         precision=Precisions.uint8, resolution=10)
 
-    cloud_prob = OpticalBand('MSK_CLDPRB', 'cloud_probability', 'percentage',
+    cloud_prob = RangeBand('MSK_CLDPRB', 'cloud_probability', 'percentage',
                              precision=Precisions.uint8, resolution=20)
-    snow_prob = OpticalBand('MSK_SNWPRB', 'snow_probability', 'percentage',
+    snow_prob = RangeBand('MSK_SNWPRB', 'snow_probability', 'percentage',
                              precision=Precisions.uint8, resolution=10)
 
 

@@ -4,9 +4,12 @@
 class Visualizers:
     """ Proxy class to hold many visualizers """
     def __init__(self, **kwargs):
+        self.__all = kwargs
         for name, vis in kwargs.items():
             setattr(self, name, vis)
 
+    def get(self, name):
+        return self.__all[name]
 
 class Visualization:
     def __init__(self, name, bands, min, max, palette=None, **kwargs):

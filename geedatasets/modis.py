@@ -155,3 +155,37 @@ class MOD11A1(Modis):
                 'fff705', 'ffd611', 'ffb613', 'ff8b13', 'ff6e08', 'ff500d',
                 'ff0000', 'de0101', 'c21301', 'a71001', '911003']),
     )
+
+
+@register
+class MOD14A1(Modis):
+    id = 'MODIS/006/MOD14A1'
+    short_name = 'MOD_FIRE_TERRA'
+    start_date = '2000-02-18'
+    end_date = None
+
+    firemask = BitBand('FireMask', 'FireMask',
+                       bits={
+                           '0-3': {
+                               4: 'cloud',
+                               5: 'non_fire',
+                               7: 'fire_low',
+                               8: 'fire_mid',
+                               9: 'fire_high'
+                           },
+                       }, positives=['fire_low', 'fire_mid', 'fire_high'])
+
+    maxfrp = RangeBand('MaxFRP', 'MaxFRP', 0, 180000, Precisions.int32, 1000,
+                       'Megawatts', 0.1, description='Maximum fire radiative power')
+
+    sample = RangeBand('sample', 'sample', 0, 1353, Precisions.uint16, 1000,
+                       description='Position of fire pixel within scan')
+
+    qa = BitBand('QA', 'QA', bits={
+        '0-1': {0: 'water', 1: 'coast', 2: 'land', 3: 'missing'},
+        '2': {0: 'night', 1: 'day'}
+    })
+
+    bands = (firemask, maxfrp, sample, qa)
+
+    masks = (Mask.fromBand('FireMask', firemask), Mask.fromBand('QA', qa))
