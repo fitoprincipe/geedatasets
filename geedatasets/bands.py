@@ -109,9 +109,11 @@ units: {units}
 scale: {scale}
 wavelength: {wavelength}
 """
-    def __init__(self, name, alias, units='reflectance',
-                 wavelength=None, **kwargs):
-        super(OpticalBand, self).__init__(name, alias, units=units, **kwargs)
+    def __init__(self, name, alias, units='reflectance', wavelength=None,
+                 precision=None, resolution=None, scale=1, description=None):
+        super(OpticalBand, self).__init__(name, alias, units=units,
+            scale=scale, description=description,
+            precision=precision, resolution=resolution)
         self.wavelength = wavelength
 
 
