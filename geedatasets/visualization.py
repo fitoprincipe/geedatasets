@@ -39,13 +39,13 @@ class Visualization:
         mins = list()
         for band in bands:
             if min_factor:
-                mins.append((1/band.scale) / min_factor)
+                mins.append(((1-band.offset)/band.scale) / min_factor)
             else:
                 mins.append(0)
         maxs = list()
         for band in bands:
             if max_factor:
-                maxs.append((1/band.scale) / max_factor)
+                maxs.append(((1-band.offset)/band.scale) / max_factor)
             else:
                 maxs.append(0)
         return cls(name, bands, mins, maxs, palette, **kwargs)

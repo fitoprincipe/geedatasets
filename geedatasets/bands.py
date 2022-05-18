@@ -28,7 +28,7 @@ units: {units}"""
                            'int16', 'uint32', 'int32', 'int64', 'byte', None)
 
     def __init__(self, name, alias, precision=None, resolution=None,
-                 units=None, scale=1, description=None):
+                 units=None, scale=1, description=None, offset=0):
         """ Band object
 
         :param name: band original name (from GEE)
@@ -37,6 +37,10 @@ units: {units}"""
         :param resolution: spatial resolution in meters
         :param units: the units of expression for the band. For example, 'db'
             for Sentinel 1
+        :param scale: the scale of the values. Multiplying by this number the
+            values will go from 0 to 1
+        :param offset: the offset of the values. To get the proper value you
+            have to add the offset
         """
         self.name = name
         self.alias = alias
@@ -45,6 +49,7 @@ units: {units}"""
         self.units = units
         self.scale = scale
         self.description = description
+        self.offset = offset
 
     def __str__(self):
         return self.BAND_STR.format(**self.__dict__, precision=self.precision)
@@ -110,10 +115,11 @@ scale: {scale}
 wavelength: {wavelength}
 """
     def __init__(self, name, alias, units='reflectance', wavelength=None,
-                 precision=None, resolution=None, scale=1, description=None):
-        super(OpticalBand, self).__init__(name, alias, units=units,
-            scale=scale, description=description,
-            precision=precision, resolution=resolution)
+                 precision=None, resolution=None, scale=1, description=None,
+                 offset=0):
+        super(OpticalBand, self).__init__(
+            name, alias, units=units, scale=scale, description=description,
+            precision=precision, resolution=resolution, offset=offset)
         self.wavelength = wavelength
 
 

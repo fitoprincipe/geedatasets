@@ -315,10 +315,10 @@ class Landsat1(MSS, Landsat):
 
 
 @register
-class Landsat1RAW(Tier1, RAW, Landsat1):
+class Landsat1RAW_C1(Tier1, RAW, Landsat1):
     """ Landsat 1 Tier 1 """
     id = 'LANDSAT/LM01/C01/T1'
-    short_name = 'L1RAW'
+    short_name = 'L1RAW_C1'
     green = MSS.green(name='B4', **RAW._extra)
     red = MSS.red(name='B5', **RAW._extra)
     nir = MSS.nir(name='B6', **RAW._extra)
@@ -332,17 +332,17 @@ class Landsat1RAW(Tier1, RAW, Landsat1):
     extra_bands = (ndvi,)
 
     def __init__(self, **kwargs):
-        super(Landsat1RAW, self).__init__(**kwargs)
+        super(Landsat1RAW_C1, self).__init__(**kwargs)
 
 
 @register
-class Landsat1RAWT2(Tier2, Landsat1RAW):
+class Landsat1RAWT2_C1(Tier2, Landsat1RAW_C1):
     """ Landsat 1 Tier 2 """
     id = 'LANDSAT/LM01/C01/T2'
-    short_name = 'L1RAWT2'
+    short_name = 'L1RAWT2_C1'
 
     def __init__(self, **kwargs):
-        super(Landsat1RAWT2, self).__init__(**kwargs)
+        super(Landsat1RAWT2_C1, self).__init__(**kwargs)
 
 
 class Landsat2(MSS, Landsat):
@@ -352,26 +352,26 @@ class Landsat2(MSS, Landsat):
 
 
 @register
-class Landsat2RAW(Tier1, RAW, Landsat2):
+class Landsat2RAW_C1(Tier1, RAW, Landsat2):
     """ Landsat 2 Tier 1 """
     id = 'LANDSAT/LM02/C01/T1'
-    short_name = 'L2RAW'
-    bands = (Landsat1RAW.green, Landsat1RAW.red, Landsat1RAW.nir, Landsat1RAW.nir2,
-             MSS.bqa)
-    visualizers = Landsat1RAW.visualizers
-    extra_bands = Landsat1RAW.extra_bands
+    short_name = 'L2RAW_C1'
+    bands = (Landsat1RAW_C1.green, Landsat1RAW_C1.red, Landsat1RAW_C1.nir,
+             Landsat1RAW_C1.nir2, MSS.bqa)
+    visualizers = Landsat1RAW_C1.visualizers
+    extra_bands = Landsat1RAW_C1.extra_bands
 
     def __init__(self, **kwargs):
-        super(Landsat2RAW, self).__init__(**kwargs)
+        super(Landsat2RAW_C1, self).__init__(**kwargs)
 
 
 @register
-class Landsat2RAWT2(Tier2, Landsat2RAW):
+class Landsat2RAWT2_C1(Tier2, Landsat2RAW_C1):
     id = 'LANDSAT/LM02/C01/T2'
-    short_name = 'L2RAWT2'
+    short_name = 'L2RAWT2_C1'
 
     def __init__(self, **kwargs):
-        super(Landsat2RAWT2, self).__init__(**kwargs)
+        super(Landsat2RAWT2_C1, self).__init__(**kwargs)
 
 
 class Landsat3(MSS, Landsat):
@@ -381,25 +381,25 @@ class Landsat3(MSS, Landsat):
 
 
 @register
-class Landsat3RAW(Tier1, RAW, Landsat3):
+class Landsat3RAW_C1(Tier1, RAW, Landsat3):
     id = 'LANDSAT/LM03/C01/T1'
-    short_name = 'L3RAW'
-    bands = (Landsat1RAW.green, Landsat1RAW.red, Landsat1RAW.nir, Landsat1RAW.nir2,
+    short_name = 'L3RAW_C1'
+    bands = (Landsat1RAW_C1.green, Landsat1RAW_C1.red, Landsat1RAW_C1.nir, Landsat1RAW_C1.nir2,
              MSS.bqa)
-    visualizers = Landsat1RAW.visualizers
-    extra_bands = Landsat1RAW.extra_bands
+    visualizers = Landsat1RAW_C1.visualizers
+    extra_bands = Landsat1RAW_C1.extra_bands
 
     def __init__(self, **kwargs):
-        super(Landsat3RAW, self).__init__(**kwargs)
+        super(Landsat3RAW_C1, self).__init__(**kwargs)
 
 
 @register
-class Landsat3RAWT2(Tier2, Landsat3RAW):
+class Landsat3RAWT2_C1(Tier2, Landsat3RAW_C1):
     id = 'LANDSAT/LM03/C01/T2'
-    short_name = 'L3RAWT2'
+    short_name = 'L3RAWT2_C1'
 
     def __init__(self, **kwargs):
-        super(Landsat3RAWT2, self).__init__(**kwargs)
+        super(Landsat3RAWT2_C1, self).__init__(**kwargs)
 
 
 class Landsat4MSS(MSS, Landsat):
@@ -409,10 +409,10 @@ class Landsat4MSS(MSS, Landsat):
 
 
 @register
-class Landsat4MSSRAW(Tier1, RAW, Landsat4MSS):
+class Landsat4MSSRAW_C1(Tier1, RAW, Landsat4MSS):
     """ Landsat 4 MSS """
     id = 'LANDSAT/LM04/C01/T1'
-    short_name = 'L4MSSRAW'
+    short_name = 'L4MSSRAW_C1'
     green = MSS.green(name='B1', **RAW._extra)
     red = MSS.red(name='B2', **RAW._extra)
     nir = MSS.nir(name='B3', **RAW._extra)
@@ -426,17 +426,17 @@ class Landsat4MSSRAW(Tier1, RAW, Landsat4MSS):
     extra_bands = (ndvi,)
 
     def __init__(self, **kwargs):
-        super(Landsat4MSSRAW, self).__init__(**kwargs)
+        super(Landsat4MSSRAW_C1, self).__init__(**kwargs)
 
 
 @register
-class Landsat4MSSRAWT2(Tier2, Landsat4MSSRAW):
+class Landsat4MSSRAWT2_C1(Tier2, Landsat4MSSRAW_C1):
     """ Landsat 4 MSS """
     id = 'LANDSAT/LM04/C01/T2'
-    short_name = 'L4MSSRAWT2'
+    short_name = 'L4MSSRAWT2_C1'
 
     def __init__(self, **kwargs):
-        super(Landsat4MSSRAWT2, self).__init__(**kwargs)
+        super(Landsat4MSSRAWT2_C1, self).__init__(**kwargs)
 
 
 class Landsat4TM(TM, Landsat):
@@ -447,9 +447,9 @@ class Landsat4TM(TM, Landsat):
 
 
 @register
-class Landsat4RAW(Tier1, RAW, Landsat4TM):
+class Landsat4RAW_C1(Tier1, RAW, Landsat4TM):
     id = 'LANDSAT/LT04/C01/T1'
-    short_name = 'L4RAW'
+    short_name = 'L4RAW_C1'
     blue = TM.blue(**RAW._extra)
     green = TM.green(**RAW._extra)
     red = TM.red(**RAW._extra)
@@ -472,22 +472,22 @@ class Landsat4RAW(Tier1, RAW, Landsat4TM):
     extra_bands = (ndvi, nbr)
 
     def __init__(self, **kwargs):
-        super(Landsat4RAW, self).__init__(**kwargs)
+        super(Landsat4RAW_C1, self).__init__(**kwargs)
 
 
 @register
-class Landsat4RAWT2(Tier2, Landsat4RAW):
+class Landsat4RAWT2_C1(Tier2, Landsat4RAW_C1):
     id = 'LANDSAT/LT04/C01/T2'
-    short_name = 'L4RAWT2'
+    short_name = 'L4RAWT2_C1'
 
     def __init__(self, **kwargs):
-        super(Landsat4RAWT2, self).__init__(**kwargs)
+        super(Landsat4RAWT2_C1, self).__init__(**kwargs)
 
 
 @register
-class Landsat4TOA(Tier1, TOA, Landsat4TM):
+class Landsat4TOA_C1(Tier1, TOA, Landsat4TM):
     id = 'LANDSAT/LT04/C01/T1_TOA'
-    short_name = 'L4TOA'
+    short_name = 'L4TOA_C1'
     blue = TM.blue(**TOA._extra)
     green = TM.green(**TOA._extra)
     red = TM.red(**TOA._extra)
@@ -510,22 +510,22 @@ class Landsat4TOA(Tier1, TOA, Landsat4TM):
     extra_bands = (ndvi, nbr)
 
     def __init__(self, **kwargs):
-        super(Landsat4TOA, self).__init__(**kwargs)
+        super(Landsat4TOA_C1, self).__init__(**kwargs)
 
 
 @register
-class Landsat4TOAT2(Tier2, Landsat4TOA):
+class Landsat4TOAT2_C1(Tier2, Landsat4TOA_C1):
     id = 'LANDSAT/LT04/C01/T2_TOA'
-    short_name = 'L4TOAT2'
+    short_name = 'L4TOAT2_C1'
 
     def __init__(self, **kwargs):
-        super(Landsat4TOAT2, self).__init__(**kwargs)
+        super(Landsat4TOAT2_C1, self).__init__(**kwargs)
 
 
 @register
-class Landsat4SR(Tier1, SR, Landsat4TM):
+class Landsat4SR_C1(Tier1, SR, Landsat4TM):
     id = 'LANDSAT/LT04/C01/T1_SR'
-    short_name = 'L4SR'
+    short_name = 'L4SR_C1'
     blue = TM.blue(**SR._extra)
     green = TM.green(**SR._extra)
     red = TM.red(**SR._extra)
@@ -551,16 +551,16 @@ class Landsat4SR(Tier1, SR, Landsat4TM):
     extra_bands = (ndvi, nbr)
 
     def __init__(self, **kwargs):
-        super(Landsat4SR, self).__init__(**kwargs)
+        super(Landsat4SR_C1, self).__init__(**kwargs)
 
 
 @register
-class Landsat4SRT2(Tier2, Landsat4SR):
+class Landsat4SRT2_C1(Tier2, Landsat4SR_C1):
     id = 'LANDSAT/LT04/C01/T2_SR'
-    short_name = 'L4SRT2'
+    short_name = 'L4SRT2_C1'
 
     def __init__(self, **kwargs):
-        super(Landsat4SRT2, self).__init__(**kwargs)
+        super(Landsat4SRT2_C1, self).__init__(**kwargs)
 
 
 class Landsat5MSS(MSS, Landsat):
@@ -570,10 +570,10 @@ class Landsat5MSS(MSS, Landsat):
 
 
 @register
-class Landsat5MSSRAW(Tier1, RAW, Landsat4MSS):
+class Landsat5MSSRAW_C1(Tier1, RAW, Landsat4MSS):
     """ Landsat 5 MSS """
     id = 'LANDSAT/LM05/C01/T1'
-    short_name = 'L5MSSRAW'
+    short_name = 'L5MSSRAW_C1'
     green = MSS.green(name='B1', **RAW._extra)
     red = MSS.red(name='B2', **RAW._extra)
     nir = MSS.nir(name='B3', **RAW._extra)
@@ -588,17 +588,17 @@ class Landsat5MSSRAW(Tier1, RAW, Landsat4MSS):
     extra_bands = (ndvi,)
 
     def __init__(self, **kwargs):
-        super(Landsat5MSSRAW, self).__init__(**kwargs)
+        super(Landsat5MSSRAW_C1, self).__init__(**kwargs)
 
 
 @register
-class Landsat5MSSRAWT2(Tier2, Landsat5MSSRAW):
+class Landsat5MSSRAWT2_C1(Tier2, Landsat5MSSRAW_C1):
     """ Landsat 5 MSS """
     id = 'LANDSAT/LM05/C01/T2'
-    short_name = 'L5MSSRAWT2'
+    short_name = 'L5MSSRAWT2_C1'
 
     def __init__(self, **kwargs):
-        super(Landsat5MSSRAWT2, self).__init__(**kwargs)
+        super(Landsat5MSSRAWT2_C1, self).__init__(**kwargs)
 
 
 class Landsat5TM(TM, Landsat):
@@ -609,9 +609,9 @@ class Landsat5TM(TM, Landsat):
 
 
 @register
-class Landsat5RAW(Tier1, RAW, Landsat5TM):
+class Landsat5RAW_C1(Tier1, RAW, Landsat5TM):
     id = 'LANDSAT/LT05/C01/T1'
-    short_name = 'L5RAW'
+    short_name = 'L5RAW_C1'
     blue = TM.blue(**RAW._extra)
     green = TM.green(**RAW._extra)
     red = TM.red(**RAW._extra)
@@ -633,22 +633,22 @@ class Landsat5RAW(Tier1, RAW, Landsat5TM):
     extra_bands = (ndvi, nbr)
 
     def __init__(self, **kwargs):
-        super(Landsat5RAW, self).__init__(**kwargs)
+        super(Landsat5RAW_C1, self).__init__(**kwargs)
 
 
 @register
-class Landsat5RAWT2(Tier2, Landsat5RAW):
+class Landsat5RAWT2_C1(Tier2, Landsat5RAW_C1):
     id = 'LANDSAT/LT05/C01/T2'
-    short_name = 'L5RAWT2'
+    short_name = 'L5RAWT2_C1'
 
     def __init__(self, **kwargs):
-        super(Landsat5RAWT2, self).__init__(**kwargs)
+        super(Landsat5RAWT2_C1, self).__init__(**kwargs)
 
 
 @register
-class Landsat5TOA(Tier1, TOA, Landsat5TM):
+class Landsat5TOA_C1(Tier1, TOA, Landsat5TM):
     id = 'LANDSAT/LT05/C01/T1_TOA'
-    short_name = 'L5TOA'
+    short_name = 'L5TOA_C1'
     blue = TM.blue(**TOA._extra)
     green = TM.green(**TOA._extra)
     red = TM.red(**TOA._extra)
@@ -670,22 +670,22 @@ class Landsat5TOA(Tier1, TOA, Landsat5TM):
     extra_bands = (ndvi, nbr)
 
     def __init__(self, **kwargs):
-        super(Landsat5TOA, self).__init__(**kwargs)
+        super(Landsat5TOA_C1, self).__init__(**kwargs)
 
 
 @register
-class Landsat5TOAT2(Tier2, Landsat5TOA):
+class Landsat5TOAT2_C1(Tier2, Landsat5TOA_C1):
     id = 'LANDSAT/LT05/C01/T2_TOA'
-    short_name = 'L5TOAT2'
+    short_name = 'L5TOAT2_C1'
 
     def __init__(self, **kwargs):
-        super(Landsat5TOAT2, self).__init__(**kwargs)
+        super(Landsat5TOAT2_C1, self).__init__(**kwargs)
 
 
 @register
-class Landsat5SR(Tier1, SR, Landsat5TM):
+class Landsat5SR_C1(Tier1, SR, Landsat5TM):
     id = 'LANDSAT/LT05/C01/T1_SR'
-    short_name = 'L5SR'
+    short_name = 'L5SR_C1'
     blue = TM.blue(**SR._extra)
     green = TM.green(**SR._extra)
     red = TM.red(**SR._extra)
@@ -710,16 +710,16 @@ class Landsat5SR(Tier1, SR, Landsat5TM):
     extra_bands = (ndvi, nbr)
 
     def __init__(self, **kwargs):
-        super(Landsat5SR, self).__init__(**kwargs)
+        super(Landsat5SR_C1, self).__init__(**kwargs)
 
 
 @register
-class Landsat5SRT2(Tier2, Landsat5SR):
+class Landsat5SRT2_C1(Tier2, Landsat5SR_C1):
     id = 'LANDSAT/LT05/C01/T2_SR'
-    short_name = 'L5SRT2'
+    short_name = 'L5SRT2_C1'
 
     def __init__(self, **kwargs):
-        super(Landsat5SRT2, self).__init__(**kwargs)
+        super(Landsat5SRT2_C1, self).__init__(**kwargs)
 
 
 class Landsat7ETM(ETM, Landsat):
@@ -731,9 +731,9 @@ class Landsat7ETM(ETM, Landsat):
 
 
 @register
-class Landsat7RAW(Tier1, RAW, Landsat7ETM):
+class Landsat7RAW_C1(Tier1, RAW, Landsat7ETM):
     id = 'LANDSAT/LE07/C01/T1'
-    short_name = 'L7RAW'
+    short_name = 'L7RAW_C1'
     blue = ETM.blue(**RAW._extra)
     green = ETM.green(**RAW._extra)
     red = ETM.red(**RAW._extra)
@@ -756,22 +756,22 @@ class Landsat7RAW(Tier1, RAW, Landsat7ETM):
     extra_bands = (ndvi, nbr)
 
     def __init__(self, **kwargs):
-        super(Landsat7RAW, self).__init__(**kwargs)
+        super(Landsat7RAW_C1, self).__init__(**kwargs)
 
 
 @register
-class Landsat7RAWT2(Tier2, Landsat7RAW):
+class Landsat7RAWT2_C1(Tier2, Landsat7RAW_C1):
     id = 'LANDSAT/LE07/C01/T2'
-    short_name = 'L7RAWT2'
+    short_name = 'L7RAWT2_C1'
 
     def __init__(self, **kwargs):
-        super(Landsat7RAWT2, self).__init__(**kwargs)
+        super(Landsat7RAWT2_C1, self).__init__(**kwargs)
 
 
 @register
-class Landsat7TOA(Tier1, TOA, Landsat7ETM):
+class Landsat7TOA_C1(Tier1, TOA, Landsat7ETM):
     id = 'LANDSAT/LE07/C01/T1_TOA'
-    short_name = 'L7TOA'
+    short_name = 'L7TOA_C1'
     blue = ETM.blue(**TOA._extra)
     green = ETM.green(**TOA._extra)
     red = ETM.red(**TOA._extra)
@@ -794,22 +794,22 @@ class Landsat7TOA(Tier1, TOA, Landsat7ETM):
     extra_bands = (ndvi, nbr)
 
     def __init__(self, **kwargs):
-        super(Landsat7TOA, self).__init__(**kwargs)
+        super(Landsat7TOA_C1, self).__init__(**kwargs)
 
 
 @register
-class Landsat7TOAT2(Tier2, Landsat7TOA):
+class Landsat7TOAT2_C1(Tier2, Landsat7TOA_C1):
     id = 'LANDSAT/LE07/C01/T2_TOA'
-    short_name = 'L7TOAT2'
+    short_name = 'L7TOAT2_C1'
 
     def __init__(self, **kwargs):
-        super(Landsat7TOAT2, self).__init__(**kwargs)
+        super(Landsat7TOAT2_C1, self).__init__(**kwargs)
 
 
 @register
-class Landsat7SR(Tier1, SR, Landsat7ETM):
+class Landsat7SR_C1(Tier1, SR, Landsat7ETM):
     id = 'LANDSAT/LE07/C01/T1_SR'
-    short_name = 'L7SR'
+    short_name = 'L7SR_C1'
     blue = ETM.blue(**SR._extra)
     green = ETM.green(**SR._extra)
     red = ETM.red(**SR._extra)
@@ -834,16 +834,16 @@ class Landsat7SR(Tier1, SR, Landsat7ETM):
     extra_bands = (ndvi, nbr)
 
     def __init__(self, **kwargs):
-        super(Landsat7SR, self).__init__(**kwargs)
+        super(Landsat7SR_C1, self).__init__(**kwargs)
 
 
 @register
-class Landsat7SRT2(Tier2, Landsat7SR):
+class Landsat7SRT2_C1(Tier2, Landsat7SR_C1):
     id = 'LANDSAT/LE07/C01/T2_SR'
-    short_name = 'L7SRT2'
+    short_name = 'L7SRT2_C1'
 
     def __init__(self, **kwargs):
-        super(Landsat7SRT2, self).__init__(**kwargs)
+        super(Landsat7SRT2_C1, self).__init__(**kwargs)
 
 
 class Landsat8OLI(OLI, Landsat):
@@ -854,9 +854,9 @@ class Landsat8OLI(OLI, Landsat):
 
 
 @register
-class Landsat8RAW(Tier1, RAW, Landsat8OLI):
+class Landsat8RAW_C1(Tier1, RAW, Landsat8OLI):
     id = 'LANDSAT/LC08/C01/T1'
-    short_name = 'L8RAW'
+    short_name = 'L8RAW_C1'
     aerosol = OLI.aerosol(**OLI.RAW._extra)
     blue = OLI.blue(**OLI.RAW._extra)
     green = OLI.green(**OLI.RAW._extra)
@@ -883,22 +883,22 @@ class Landsat8RAW(Tier1, RAW, Landsat8OLI):
     extra_bands = (ndvi, nbr)
 
     def __init__(self, **kwargs):
-        super(Landsat8RAW, self).__init__(**kwargs)
+        super(Landsat8RAW_C1, self).__init__(**kwargs)
 
 
 @register
-class Landsat8RAWT2(Tier2, Landsat8RAW):
+class Landsat8RAWT2_C1(Tier2, Landsat8RAW_C1):
     id = 'LANDSAT/LC08/C01/T2'
-    short_name = 'L8RAWT2'
+    short_name = 'L8RAWT2_C1'
 
     def __init__(self, **kwargs):
-        super(Landsat8RAWT2, self).__init__(**kwargs)
+        super(Landsat8RAWT2_C1, self).__init__(**kwargs)
 
 
 @register
-class Landsat8TOA(Tier1, TOA, Landsat8OLI):
+class Landsat8TOA_C1(Tier1, TOA, Landsat8OLI):
     id = 'LANDSAT/LC08/C01/T1_TOA'
-    short_name = 'L8TOA'
+    short_name = 'L8TOA_C1'
     aerosol = OLI.aerosol(**TOA._extra)
     blue = OLI.blue(**TOA._extra)
     green = OLI.green(**TOA._extra)
@@ -925,22 +925,22 @@ class Landsat8TOA(Tier1, TOA, Landsat8OLI):
     extra_bands = (ndvi, nbr)
 
     def __init__(self, **kwargs):
-        super(Landsat8TOA, self).__init__(**kwargs)
+        super(Landsat8TOA_C1, self).__init__(**kwargs)
 
 
 @register
-class Landsat8TOAT2(Tier2, Landsat8TOA):
+class Landsat8TOAT2_C1(Tier2, Landsat8TOA_C1):
     id = 'LANDSAT/LC08/C01/T2_TOA'
-    short_name = 'L8TOAT2'
+    short_name = 'L8TOAT2_C1'
 
     def __init__(self, **kwargs):
-        super(Landsat8TOAT2, self).__init__(**kwargs)
+        super(Landsat8TOAT2_C1, self).__init__(**kwargs)
 
 
 @register
-class Landsat8SR(Tier1, SR, Landsat8OLI):
+class Landsat8SR_C1(Tier1, SR, Landsat8OLI):
     id = 'LANDSAT/LC08/C01/T1_SR'
-    short_name = 'L8SR'
+    short_name = 'L8SR_C1'
     aerosol = OLI.aerosol(**SR._extra)
     blue = OLI.blue(**SR._extra)
     green = OLI.green(**SR._extra)
@@ -965,13 +965,13 @@ class Landsat8SR(Tier1, SR, Landsat8OLI):
     extra_bands = (ndvi, nbr)
 
     def __init__(self, **kwargs):
-        super(Landsat8SR, self).__init__(**kwargs)
+        super(Landsat8SR_C1, self).__init__(**kwargs)
 
 
 @register
-class Landsat8SRT2(Tier2, Landsat8SR):
+class Landsat8SRT2_C1(Tier2, Landsat8SR_C1):
     id = 'LANDSAT/LC08/C01/T2_SR'
-    short_name = 'L8SRT2'
+    short_name = 'L8SRT2_C1'
 
     def __init__(self, **kwargs):
-        super(Landsat8SRT2, self).__init__(**kwargs)
+        super(Landsat8SRT2_C1, self).__init__(**kwargs)

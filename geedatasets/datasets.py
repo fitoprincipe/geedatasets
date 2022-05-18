@@ -497,6 +497,40 @@ Visualizers: {visualizers}
             final = final.select(bands)
         return final
 
+    def normalization_table(self, renamed=False):
+        """ Get a ee.Dictionary holding the normalization parameters in form of
+        {'band': {'scale': xx, 'offset': xx}, 'band2':....}
+        """
+        local = {}
+        for band in self.bands:
+            if renamed:
+                name = band.alias
+            else:
+                name = band.name
+            local[name] = {'scale': band.scale, 'offset': band.offset}
+        return ee.Dictionary(local)
+
+    def normalize(self, image, renamed=False):
+        """ Multiply by scale and shift offset to get values between 0 and 1
+        """
+        data = self.normalization_table(renamed)
+        bands = image.bandNames()
+        def overbands(band, i):
+            i = ee.Image(i)
+            proxy = ee.Dictionary({'scale': 1, 'offset': 0})
+            d = ee.Dictionary(
+                ee.Algorithms.If(data.contains(band), data.get(band), proxy))
+            scale = ee.Number(d.get('scale'))
+            offset = ee.Number(d.get('offset'))
+            iband = i.select([band])
+            iband = ee.Image(
+                ee.Algorithms.If(scale.neq(1), iband.multiply(scale), iband))
+            iband = ee.Image(
+                ee.Algorithms.If(offset.neq(0), iband.add(offset), iband))
+            return i.addBands(iband, overwrite=True)
+        i = ee.Image(bands.iterate(overbands, image))
+        return i
+
 
 class Table(Dataset):
     INFO = """ID: {id}

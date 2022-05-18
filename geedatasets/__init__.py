@@ -21,7 +21,7 @@ def register(cls):
     return cls
 
 
-from . import landsat, sentinel, modis, climate
+from . import landsat_c1, landsat, sentinel, modis, climate
 
 
 def fromId(id):
