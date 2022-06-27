@@ -154,7 +154,7 @@ Date: {date}
         return data
 
 
-class ImageCollection(Dataset):
+class   ImageCollection(Dataset):
     INFO = """ID: {id}
 Start Date: {start_date}
 End Date: {end_date}
@@ -497,23 +497,28 @@ Visualizers: {visualizers}
             final = final.select(bands)
         return final
 
-    def normalization_table(self, renamed=False):
+    def normalization_table(self, bands='all', renamed=False):
         """ Get a ee.Dictionary holding the normalization parameters in form of
         {'band': {'scale': xx, 'offset': xx}, 'band2':....}
         """
         local = {}
+        if isinstance(bands, str):
+            bands = bands.lower()
         for band in self.bands:
-            if renamed:
-                name = band.alias
+            b = band.alias if renamed else band.name
+            if b in bands or bands == 'all':
+                scale = band.scale
+                offset = band.offset
             else:
-                name = band.name
-            local[name] = {'scale': band.scale, 'offset': band.offset}
+                scale = 1
+                offset = 0
+            local[b] = {'scale': scale, 'offset': offset}
         return ee.Dictionary(local)
 
-    def normalize(self, image, renamed=False):
+    def normalize(self, image, bands='all', renamed=False):
         """ Multiply by scale and shift offset to get values between 0 and 1
         """
-        data = self.normalization_table(renamed)
+        data = self.normalization_table(bands, renamed)
         bands = image.bandNames()
         def overbands(band, i):
             i = ee.Image(i)
