@@ -252,13 +252,23 @@ Visualizers: {visualizers}
                 ee.Algorithms.If(unbounded, col, col.filterBounds(bounds)))
 
         if isinstance(date, (list, tuple)):
-            col = col.filterDate(ee.Date(date[0]), ee.Date(date[1]))
+            if len(date) == 2:
+                start = date[0]
+                end = date[1]
+            else:
+                start = date[0]
+                end = None
+            if start and end:
+                col = col.filterDate(ee.Date(start), ee.Date(end))
+            elif start:
+                col = col.filterDate(ee.Date(start))
+            elif end:
+                col = col.filterDate('1970-01-01', ee.Date(start))
         elif isinstance(date, (str, ee.Date)):
             col = col.filterDate(ee.Date(date))
 
         if shortname_prop:
             col = col.map(lambda i: i.set(shortname_prop, self.short_name))
-
         return col
 
     def getMask(self, name):
