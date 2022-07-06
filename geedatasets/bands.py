@@ -268,8 +268,7 @@ negatives: {negatives}
 
 class ExpressionBand(Band):
     """ A band to add a new band """
-    def __init__(self, name, alias, expression=None, bands=None, extra=None,
-                 **kwargs):
+    def __init__(self, name, alias, expression, bands, extra=None, **kwargs):
         """ An expression band. Bands in list of bands must be instances of Band.
         Example (NDVI S2):
 
@@ -304,8 +303,9 @@ class ExpressionBand(Band):
         params = dict()
         for band in self.bands:
             name = band.alias if renamed else band.name
-            params[band.alias] = image.select(name)
-            params[band.name] = image.select(name)
+            i = image.select(name).multiply(band.scale).add(band.offset)
+            params[band.alias] = i
+            params[band.name] = i
 
         if self.extra:
             for key, value in self.extra.items():
