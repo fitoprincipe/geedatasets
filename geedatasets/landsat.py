@@ -1,14 +1,18 @@
 # coding=utf-8
 """ Google Earth Engine Landsat Collections """
+import ee
+
 from .visualization import *
 from .datasets import OpticalSatellite, ImageCollection
 from .bands import OpticalBand, BitBand, ClassificationBand, ExpressionBand,\
-    Precisions
+                   Precisions
 from .helpers import TODAY
 from functools import partial
 from . import register
 from .masks import Mask
+from .helpers import getCommonBands
 import geetools
+import datetime
 
 
 START = {4: '1982-07-16', 5: '1984-01-01', 7: '1999-01-01',
@@ -27,6 +31,7 @@ IDS = [
     'LANDSAT/LC09/C02/T1_L2', 'LANDSAT/LC09/C02/T2_L2',
     'LANDSAT/LC09/C02/T1_TOA', 'LANDSAT/LC09/C02/T2_TOA',
 ]
+SLC_OFF = '2003-05-31'
 
 
 class Landsat(OpticalSatellite, ImageCollection):
@@ -580,6 +585,8 @@ class Landsat4SRT2(Tier2, Landsat4SR):
 
 @register
 class Landsat5SR(Landsat, Tier1, TM_SR, SR):
+    start_date = '1984-03-16'
+    end_date = '2012-05-05'
     id = 'LANDSAT/LT05/C02/T1_L2'
     short_name = 'L5SR'
     masks = (Mask.fromBand('qa_pixel', Landsat.qa_pixel),
@@ -617,6 +624,8 @@ class Landsat5SRT2(Tier2, Landsat5SR):
 
 @register
 class Landsat7SR(Landsat, Tier1, ETM_SR, SR):
+    start_date = '1999-05-28'
+    end_date = '2022-04-06'
     id = 'LANDSAT/LE07/C02/T1_L2'
     short_name = 'L7SR'
     masks = (Mask.fromBand('qa_pixel', Landsat.qa_pixel),
@@ -654,6 +663,8 @@ class Landsat7SRT2(Tier2, Landsat7SR):
 
 @register
 class Landsat8SR(Landsat, Tier1, OLI_SR, SR):
+    start_date = '2013-03-18'
+    end_date = None
     id = 'LANDSAT/LC08/C02/T1_L2'
     short_name = 'L8SR'
     masks = (Mask.fromBand('qa_pixel', Landsat.qa_pixel),)
@@ -689,6 +700,8 @@ class Landsat8SRT2(Tier2, Landsat8SR):
 
 @register
 class Landsat9SR(Landsat, Tier1, OLI_SR, SR):
+    start_date = '2021-10-31'
+    end_date = None
     id = 'LANDSAT/LC09/C02/T1_L2'
     short_name = 'L9SR'
 
@@ -725,6 +738,8 @@ class Landsat9SRT2(Tier2, Landsat9SR):
 
 @register
 class Landsat5TOA(Landsat, Tier1, TM_TOA, TOA):
+    start_date = '1984-04-19'
+    end_date = '2011-11-08'
     id = 'LANDSAT/LT05/C02/T1_TOA'
     short_name = 'L5TOA'
     masks = (Mask.fromBand('qa_pixel', Landsat.qa_pixel),)
@@ -759,6 +774,8 @@ class Landsat5TOAT2(Tier2, Landsat5TOA):
 
 @register
 class Landsat7TOA(Landsat, Tier1, ETM_TOA, TOA):
+    start_date = '1999-06-29'
+    end_date = '2022-04-06'
     id = 'LANDSAT/LE07/C02/T1_TOA'
     short_name = 'L7TOA'
     masks = (Mask.fromBand('qa_pixel', Landsat.qa_pixel),)
@@ -804,6 +821,8 @@ class Landsat7TOAT2(Tier2, Landsat7TOA):
 
 @register
 class Landsat8TOA(Landsat, Tier1, OLI_TOA, TOA):
+    start_date = '2013-03-18'
+    end_date = None
     id = 'LANDSAT/LC08/C02/T1_TOA'
     short_name = 'L8TOA'
     masks = (Mask.fromBand('qa_pixel', Landsat.qa_pixel),)
@@ -838,6 +857,8 @@ class Landsat8TOAT2(Tier2, Landsat8TOA):
 
 @register
 class Landsat9TOA(Landsat, Tier1, OLI_TOA, TOA):
+    start_date = '2021-10-31'
+    end_date = None
     id = 'LANDSAT/LC09/C02/T1_TOA'
     short_name = 'L9TOA'
     masks = (Mask.fromBand('qa_pixel', Landsat.qa_pixel),)
@@ -872,6 +893,8 @@ class Landsat9TOAT2(Tier2, Landsat9TOA):
 
 @register
 class Landsat5RAW(Landsat, Tier1, TM_RAW, RAW):
+    start_date = '1984-01-01'
+    end_date = '2012-05-05'
     id = 'LANDSAT/LT05/C02/T1'
     short_name = 'L5RAW'
     masks = (Mask.fromBand('qa_pixel', Landsat.qa_pixel),)    
@@ -906,6 +929,8 @@ class Landsat5RAWT2(Tier2, Landsat5RAW):
 
 @register
 class Landsat7RAW(Landsat, Tier1, ETM_RAW, RAW):
+    start_date = '1999-01-01'
+    end_date = '2022-04-06'
     id = 'LANDSAT/LE07/C02/T1'
     short_name = 'L7RAW'
     masks = (Mask.fromBand('qa_pixel', Landsat.qa_pixel),)
@@ -951,6 +976,8 @@ class Landsat7RAWT2(Tier2, Landsat7RAW):
 
 @register
 class Landsat8RAW(Landsat, Tier1, OLI_RAW, RAW):
+    start_date = '2013-03-18'
+    end_date = None
     id = 'LANDSAT/LC08/C02/T1'
     short_name = 'L8RAW'
     masks = (Mask.fromBand('qa_pixel', Landsat.qa_pixel),)    
@@ -987,6 +1014,8 @@ class Landsat8RAWT2(Tier2, Landsat8RAW):
 
 @register
 class Landsat9RAW(Landsat, Tier1, OLI_RAW, RAW):
+    start_date = '2021-10-31'
+    end_date = None
     id = 'LANDSAT/LC09/C02/T1'
     short_name = 'L9RAW'
     masks = (Mask.fromBand('qa_pixel', Landsat.qa_pixel),)    
@@ -1019,3 +1048,43 @@ class Landsat9RAWT2(Tier2, Landsat9RAW):
 
     def __init__(self, **kwargs):
         super(Landsat9RAWT2, self).__init__(**kwargs)
+
+
+def complete_sr(start=None, end=None, site=None, satellites=(9, 8, 7, 5),
+                include_slc_off=False, apply_mask='negatives',
+                mask_positives=('clear',), mask_negatives=('water', 'shadow',
+                'snow', 'cloud', 'cloud_confidence_high',
+                'cirrus_confidence_high'), cloud_cover=None):
+    mask = Mask.fromBand('Landsat', Landsat.qa_pixel)
+    if apply_mask:
+        apply_mask = 'negatives' if apply_mask is True else apply_mask
+        if apply_mask.lower() == 'negatives':
+            maskf = partial(mask.apply, negatives=mask_negatives, renamed=False)
+        elif apply_mask.lower() == 'positives':
+            maskf = partial(mask.apply, positives=mask_positives, renamed=False)
+        else:
+            maskf = None
+    else:
+        maskf = None
+
+    satrel = {4: Landsat4SR, 5: Landsat5SR, 7: Landsat7SR, 8: Landsat8SR,
+              9: Landsat9SR}
+    sats = [satrel[s]() for s in satellites if s in satrel.keys()]
+    bands = getCommonBands(*sats, match='alias')
+    col = ee.ImageCollection([])
+    for sat in sats:
+        s = start or sat.start_date
+        e = end or sat.end_date or TODAY
+        c = sat.collection(site, (s, e))
+        if not include_slc_off and sat.short_name in [
+            'L7SR', 'L7TOA', 'L7RAW', 'L7SRT2', 'L7TOAT2', 'L7RAWT2']:
+            slc = ee.Date(SLC_OFF)
+            cond = slc.difference(s, 'day').gt(0)
+            c = ee.ImageCollection(
+                ee.Algorithms.If(cond, c.filterDate(s, SLC_OFF),
+                                 c.filterDate('1970-01-01', SLC_OFF)))
+        c = c.filter(ee.Filter.lte(sat.cloud_cover, cloud_cover)) if cloud_cover else c
+        c = c.map(lambda i: maskf(i)) if maskf else c
+        c = c.map(lambda i: sat.rename(i).select(bands))
+        col = col.merge(c)
+    return col
