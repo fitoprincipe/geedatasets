@@ -1056,6 +1056,9 @@ def complete_sr(start=None, end=None, site=None, satellites=(9, 8, 7, 5),
                 'snow', 'cloud', 'cloud_confidence_high',
                 'cirrus_confidence_high'), cloud_cover=None,
                 landsat_band=True):
+    """ Create a collection with all Landsat images. The bands will be always
+    renamed. You can set landsat_band to True to keep track where the pixels
+    are coming from """
     mask = Mask.fromBand('Landsat', Landsat.qa_pixel)
     if apply_mask:
         apply_mask = 'negatives' if apply_mask is True else apply_mask
