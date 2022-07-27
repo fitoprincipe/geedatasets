@@ -1054,7 +1054,8 @@ def complete_sr(start=None, end=None, site=None, satellites=(9, 8, 7, 5),
                 include_slc_off=False, apply_mask='negatives',
                 mask_positives=('clear',), mask_negatives=('water', 'shadow',
                 'snow', 'cloud', 'cloud_confidence_high',
-                'cirrus_confidence_high'), cloud_cover=None):
+                'cirrus_confidence_high'), cloud_cover=None,
+                landsat_band=True):
     mask = Mask.fromBand('Landsat', Landsat.qa_pixel)
     if apply_mask:
         apply_mask = 'negatives' if apply_mask is True else apply_mask
@@ -1072,7 +1073,10 @@ def complete_sr(start=None, end=None, site=None, satellites=(9, 8, 7, 5),
     sats = [satrel[s]() for s in satellites if s in satrel.keys()]
     bands = getCommonBands(*sats, match='alias')
     col = ee.ImageCollection([])
-    for sat in sats:
+    for lid, s in satrel.items():
+        if lid not in satellites:
+            continue
+        sat = satrel[lid]()
         s = start or sat.start_date
         e = end or sat.end_date or TODAY
         c = sat.collection(site, (s, e))
@@ -1086,5 +1090,8 @@ def complete_sr(start=None, end=None, site=None, satellites=(9, 8, 7, 5),
         c = c.filter(ee.Filter.lte(sat.cloud_cover, cloud_cover)) if cloud_cover else c
         c = c.map(lambda i: maskf(i)) if maskf else c
         c = c.map(lambda i: sat.rename(i).select(bands))
+        # add landsat id as a band
+        if landsat_band:
+            c = c.map(lambda i: i.addBands(ee.Image.constant(int(lid)).toUint8().rename('landsat')))
         col = col.merge(c)
     return col
