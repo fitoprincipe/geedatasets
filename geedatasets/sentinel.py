@@ -122,7 +122,7 @@ def decode_hollstein(image, renamed=None):
 @register
 class Sentinel2TOA(Sentinel2):
     """ Sentinel 2 TOA """
-    id = 'COPERNICUS/S2'
+    id = 'COPERNICUS/S2_HARMONIZED'
     short_name = 'S2TOA'
     process = 'TOA'
     cirrus = OpticalBand('B10', 'cirrus', precision='uint16', resolution=60)
@@ -189,7 +189,7 @@ def scl_decoder(image):
 @register
 class Sentinel2SR(Sentinel2):
     """ Sentinel 2 Surface Reflectance """
-    id = 'COPERNICUS/S2_SR'
+    id = 'COPERNICUS/S2_SR_HARMONIZED'
     short_name = 'S2SR'
     start_date = '2017-03-28'
     process = 'SR'
